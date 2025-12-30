@@ -1,4 +1,4 @@
-html {
+﻿html {
   font-size: 14px;
 }
 
@@ -19,4 +19,32 @@ html {
 
 body {
   margin-bottom: 60px;
+}
+/* Đảm bảo Menu luôn nằm trên cùng */
+.sticky-top {
+    z-index: 1020; /* Chỉ số cao của Bootstrap */
+    top: 0;
+    position: sticky;
+}
+/* Custom Footer Styles */
+.hover-primary:hover {
+    color: #0d6efd !important; /* Màu xanh Primary của Bootstrap */
+    transition: color 0.3s ease;
+    padding-left: 5px; /* Hiệu ứng đẩy nhẹ chữ sang phải */
+}
+
+.hover-white:hover {
+    color: #fff !important;
+    text-decoration: underline !important;
+}
+
+footer .form-control::placeholder {
+    color: #6c757d;
+}
+
+footer .form-control:focus {
+    background-color: transparent;
+    border-color: #0d6efd;
+    color: white;
+    box-shadow: none;
 }
