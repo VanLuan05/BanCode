@@ -1,0 +1,65 @@
+﻿@model BanCode.Models.Category
+
+@{
+    ViewData["Title"] = "Thêm Danh mục";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Thêm Danh mục mới</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-bold">Tên danh mục</label>
+                            <input asp-for="Name" class="form-control" id="catName" onkeyup="generateSlug()" placeholder="Vd: Đồ án C#" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Slug" class="form-label fw-bold">Slug (URL)</label>
+                            <input asp-for="Slug" class="form-control bg-light" id="catSlug" readonly />
+                            <span asp-validation-for="Slug" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Mô tả ngắn</label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Lưu Danh mục</button>
+                            <a asp-action="Index" class="btn btn-light border">Quay lại</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function generateSlug() {
+        let title = document.getElementById("catName").value;
+        let slug = title.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[đĐ]/g, "d")
+            .replace(/[^a-z0-9\s]/g, "")
+            .trim()
+            .replace(/\s+/g, "-");
+        document.getElementById("catSlug").value = slug;
+    }
+</script>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

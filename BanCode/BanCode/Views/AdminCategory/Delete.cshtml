@@ -1,0 +1,21 @@
+﻿@model BanCode.Models.Category
+
+@{
+    ViewData["Title"] = "Xóa Danh mục";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="alert alert-danger shadow-sm">
+        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Cảnh báo!</h4>
+        <p>Bạn có chắc chắn muốn xóa danh mục: <strong>@Model.Name</strong>?</p>
+        <hr>
+        <p class="mb-0 small">Lưu ý: Nếu xóa danh mục này, các sản phẩm thuộc về nó có thể bị lỗi hiển thị.</p>
+    </div>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger fw-bold">Xác nhận Xóa</button>
+        <a asp-action="Index" class="btn btn-secondary">Hủy bỏ</a>
+    </form>
+</div>

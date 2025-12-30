@@ -1,0 +1,87 @@
+﻿@model BanCode.Models.AdminProductViewModel
+@{
+    ViewData["Title"] = "Thêm sản phẩm";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Thêm Sản Phẩm Mới</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" enctype="multipart/form-data">
+                        <div asp-validation-summary="All" class="alert alert-danger"></div>
+                        <h5 class="text-primary mb-3">1. Thông tin cơ bản</h5>
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">Tên sản phẩm</label>
+                            <input asp-for="Title" class="form-control" onkeyup="generateSlug()" id="productTitle" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Slug" class="form-label">Đường dẫn (Slug)</label>
+                                <input asp-for="Slug" class="form-control" id="productSlug" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CategoryId" class="form-label">Danh mục</label>
+                                <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories"></select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TechStack" class="form-label">Công nghệ (Vd: C#, Winform)</label>
+                            <input asp-for="TechStack" class="form-control" placeholder="C#, SQL Server, .NET 8..." />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ThumbnailImage" class="form-label">Ảnh đại diện (Thumbnail)</label>
+                            <input asp-for="ThumbnailImage" type="file" class="form-control" accept="image/*" />
+                        </div>
+
+                        <hr />
+
+                        <h5 class="text-success mb-3">2. Giá bán & File Code</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Price" class="form-label">Giá gốc (VND)</label>
+                                <input asp-for="Price" class="form-control" type="number" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SalePrice" class="form-label">Giá bán thực tế (VND)</label>
+                                <input asp-for="SalePrice" class="form-control" type="number" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="SourceCodeFile" class="form-label fw-bold">File Source Code (.zip/.rar)</label>
+                            <input asp-for="SourceCodeFile" type="file" class="form-control" accept=".zip,.rar,.7z" />
+                            <small class="text-muted">File này sẽ được gửi cho khách sau khi thanh toán.</small>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Lưu Sản Phẩm</button>
+                            <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function generateSlug() {
+        let title = document.getElementById("productTitle").value;
+        let slug = title.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Bỏ dấu tiếng Việt
+            .replace(/[đĐ]/g, "d")
+            .replace(/[^a-z0-9\s]/g, "") // Bỏ ký tự đặc biệt
+            .trim()
+            .replace(/\s+/g, "-"); // Thay khoảng trắng bằng dấu gạch ngang
+        document.getElementById("productSlug").value = slug;
+    }
+</script>
