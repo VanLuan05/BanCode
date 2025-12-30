@@ -18,13 +18,12 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+    overflow-x: hidden; /* Chỉ ẩn thanh cuộn ngang */
+    padding-top: 80px; /* Code mới thêm */
 }
 /* Đảm bảo Menu luôn nằm trên cùng */
-.sticky-top {
-    z-index: 1020; /* Chỉ số cao của Bootstrap */
-    top: 0;
-    position: sticky;
+.fixed-top {
+    z-index: 1030; /* Chỉ số chuẩn của Bootstrap */
 }
 /* Custom Footer Styles */
 .hover-primary:hover {
