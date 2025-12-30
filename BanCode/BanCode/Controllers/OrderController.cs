@@ -125,7 +125,7 @@ namespace BanCode.Controllers
             return View();
         }
 
-        // 6. XỬ LÝ TRA CỨU (POST)
+        // 6. XỬ LÝ TRA CỨU (POST) - ĐÃ SỬA
         [HttpPost]
         public async Task<IActionResult> TrackOrder(string email, string orderIdStr)
         {
@@ -135,20 +135,20 @@ namespace BanCode.Controllers
                 return View();
             }
 
-            // Cố gắng parse Guid, nếu lỗi thì báo sai mã
-            if (!Guid.TryParse(orderIdStr, out Guid orderId))
-            {
-                ViewBag.Error = "Mã đơn hàng không hợp lệ.";
-                return View();
-            }
-
-            var order = await _context.Orders
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.Product) // Để lấy tên sản phẩm
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.Package) // Để lấy link tải
+            // BƯỚC 1: Tìm tất cả đơn hàng của Email này trước (Để tối ưu hiệu suất)
+            // Lưu ý: Include đầy đủ thông tin để hiển thị kết quả
+            var userOrders = await _context.Orders
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Package) // Nhớ là .Package nhé
                 .Include(o => o.User)
-                .FirstOrDefaultAsync(o => o.Id == orderId && o.User.Email == email);
+                .Where(o => o.User.Email == email)
+                .ToListAsync();
+
+            // BƯỚC 2: Lọc trong danh sách đó xem có đơn nào KHỚP MÃ không
+            // Dùng .ToString().Contains() để chấp nhận cả mã ngắn (8 ký tự) lẫn mã dài
+            // StringComparison.OrdinalIgnoreCase để không phân biệt hoa thường
+            var order = userOrders.FirstOrDefault(o =>
+                o.Id.ToString().Contains(orderIdStr, StringComparison.OrdinalIgnoreCase));
 
             if (order == null)
             {
@@ -156,7 +156,7 @@ namespace BanCode.Controllers
                 return View();
             }
 
-            return View(order); // Trả về View với thông tin đơn hàng tìm được
+            return View(order);
         }
 
         // 7. HÀM TẢI FILE BẢO MẬT (Chỉ cho tải khi Status = completed)
