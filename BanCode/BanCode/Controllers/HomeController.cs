@@ -75,5 +75,72 @@ namespace BanCode.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+
+        // ---------------------------------------------
+        // Action Xem Chi Tiết (URL: /san-pham/{slug})
+        [Route("san-pham/{slug}")]
+        public async Task<IActionResult> Detail(string slug)
+        {
+            if (string.IsNullOrEmpty(slug)) return NotFound();
+
+            // 1. Lấy thông tin sản phẩm
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductPackages)
+                // .Include(p => p.ProductImages) // Nếu bạn đã tạo bảng ProductImages
+                .FirstOrDefaultAsync(p => p.Slug == slug && p.Status == "published");
+
+            if (product == null) return NotFound();
+
+            // 2. Lấy sản phẩm liên quan (Cùng danh mục, trừ chính nó)
+            var relatedProducts = await _context.Products
+                .Include(p => p.ProductPackages)
+                .Include(p => p.Category)
+                .Where(p => p.CategoryId == product.CategoryId && p.Id != product.Id && p.Status == "published")
+                .Take(4)
+                .Select(p => new ProductViewModel
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Slug = p.Slug,
+                    ThumbnailUrl = p.ThumbnailUrl,
+                    Price = p.ProductPackages.FirstOrDefault(pkg => pkg.PackageType == "basic").Price,
+                    SalePrice = p.ProductPackages.FirstOrDefault(pkg => pkg.PackageType == "basic").SalePrice ?? 0,
+                    CategoryName = p.Category.Name
+                })
+                .ToListAsync();
+
+            // 3. Parse công nghệ từ JSON
+            List<string> techStackList = new List<string>();
+            if (!string.IsNullOrEmpty(product.TechStack))
+            {
+                try
+                {
+                    techStackList = System.Text.Json.JsonSerializer.Deserialize<List<string>>(product.TechStack);
+                }
+                catch { /* Bỏ qua lỗi nếu JSON sai */ }
+            }
+
+            // 4. Đổ dữ liệu vào ViewModel
+            var model = new ProductDetailViewModel
+            {
+                Id = product.Id,
+                Title = product.Title,
+                Slug = product.Slug,
+                Description = product.ShortDescription, // Hoặc Description tùy tên cột DB của bạn
+                Content = product.Content,
+                CategoryName = product.Category.Name,
+                TechStack = techStackList,
+                ThumbnailUrl = product.ThumbnailUrl,
+                ImageGallery = new List<string> { product.ThumbnailUrl }, // Tạm thời lấy thumbnail làm gallery
+                Packages = product.ProductPackages.OrderBy(p => p.Price).ToList(),
+                Rating = 5, // Hardcode tạm, sau này tính trung bình từ bảng Reviews
+                ReviewCount = 15,
+                RelatedProducts = relatedProducts
+            };
+
+            return View(model);
+        }
     }
 }

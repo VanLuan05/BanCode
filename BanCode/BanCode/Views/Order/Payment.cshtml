@@ -1,0 +1,37 @@
+﻿@model BanCode.Models.Order
+@{
+    ViewData["Title"] = "Thanh toán";
+    // Tạo link QR Code tự động (Thay số tài khoản của bạn vào đây)
+    // Cấu trúc: https://img.vietqr.io/image/[BankID]-[AccountNo]-[Template].png?amount=[Amount]&addInfo=[Content]
+    string qrLink = $"https://img.vietqr.io/image/MB-0000123456789-compact2.png?amount={Model.TotalAmount}&addInfo=THANHTOAN DON {Model.Id.ToString().Substring(0, 8)}";
+}
+
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="m-0 fw-bold">Quét mã để thanh toán</h5>
+                </div>
+                <div class="card-body p-4 bg-white">
+                    <p class="text-muted mb-3">Vui lòng dùng App Ngân hàng hoặc Momo để quét</p>
+
+                    <img src="@qrLink" class="img-fluid border rounded mb-3" width="300" alt="QR Code" />
+
+                    <div class="alert alert-warning small">
+                        <strong>Nội dung CK:</strong> <span class="user-select-all fw-bold">THANHTOAN DON @Model.Id.ToString().Substring(0, 8)</span>
+                        <br>
+                        <strong>Số tiền:</strong> <span class="fw-bold">@Model.TotalAmount.ToString("N0") đ</span>
+                    </div>
+
+                    <hr />
+
+                    <p class="small text-muted">Sau khi chuyển khoản thành công, vui lòng bấm nút dưới:</p>
+                    <a asp-action="ConfirmPaid" asp-route-orderId="@Model.Id" class="btn btn-success w-100 py-2 fw-bold">
+                        <i class="bi bi-check-circle-fill"></i> TÔI ĐÃ CHUYỂN KHOẢN
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

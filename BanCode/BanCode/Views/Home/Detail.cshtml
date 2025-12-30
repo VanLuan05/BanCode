@@ -1,0 +1,125 @@
+﻿@model BanCode.Models.ProductDetailViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<nav aria-label="breadcrumb" class="bg-light py-3 mb-4">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-action="Index" class="text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
+        </ol>
+    </div>
+</nav>
+
+<div class="container pb-5">
+    <div class="row g-5">
+        <div class="col-lg-6">
+            <div class="border rounded-4 overflow-hidden shadow-sm mb-3">
+                <img src="@Model.ThumbnailUrl" class="w-100 object-fit-cover" style="height: 400px;" alt="@Model.Title">
+            </div>
+            <div class="d-flex gap-2">
+                @foreach (var img in Model.ImageGallery)
+                {
+                    <img src="@img" class="rounded border" width="80" height="80" style="cursor: pointer; object-fit: cover;">
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="mb-3">
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill">
+                    @Model.CategoryName
+                </span>
+            </div>
+
+            <h1 class="fw-bold mb-3">@Model.Title</h1>
+
+            <div class="d-flex align-items-center mb-4">
+                <div class="text-warning me-2">★★★★★</div>
+                <span class="text-muted small">(@Model.ReviewCount đánh giá)</span>
+                <span class="mx-2 text-muted">|</span>
+                <span class="text-success fw-bold"><i class="bi bi-shield-check"></i> Code đã kiểm duyệt</span>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold text-muted text-uppercase small">Công nghệ sử dụng:</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var tech in Model.TechStack)
+                    {
+                        <span class="badge bg-secondary">@tech</span>
+                    }
+                </div>
+            </div>
+
+            <div class="card bg-light border-0 rounded-4 p-4 mb-4">
+                <h5 class="fw-bold mb-3">Chọn gói phù hợp:</h5>
+
+                <form asp-controller="Order" asp-action="Checkout" method="get">
+
+                    @foreach (var pkg in Model.Packages)
+                    {
+                        <div class="form-check p-3 bg-white border rounded-3 mb-2 d-flex align-items-center shadow-sm cursor-pointer position-relative">
+                            <input class="form-check-input mt-0 fs-5 me-3" type="radio" name="packageId" id="pkg_@pkg.Id"
+                                   value="@pkg.Id" @(pkg.PackageType == "basic" ? "checked" : "")>
+
+                            <label class="form-check-label flex-grow-1 cursor-pointer" for="pkg_@pkg.Id">
+                                <div class="d-flex justify-content-between align-items-center w-100">
+                                    <div>
+                                        <span class="fw-bold text-uppercase text-primary">@pkg.PackageType</span>
+                                        <div class="small text-muted">Source code + Database</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold fs-5 text-danger">@((pkg.SalePrice ?? pkg.Price).ToString("N0")) đ</div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    }
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="submit" class="btn btn-primary btn-lg fw-bold rounded-pill py-3 shadow hover-scale">
+                            <i class="bi bi-cart-check me-2"></i> TIẾN HÀNH THANH TOÁN
+                        </button>
+                        <small class="text-center text-muted fst-italic">Cam kết bảo mật thông tin & hoàn tiền nếu lỗi.</small>
+                    </div>
+                </form>
+            </div>
+
+            <div class="text-muted">
+                @Model.Description
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-5 opacity-25">
+
+    <div class="row">
+        <div class="col-lg-8">
+            <h3 class="fw-bold mb-4 border-start border-4 border-primary ps-3">Chi tiết tính năng</h3>
+            <div class="content-body text-secondary lh-lg">
+                @Html.Raw(Model.Content ?? "<p>Đang cập nhật nội dung chi tiết...</p>")
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <h5 class="fw-bold mb-4">Sản phẩm liên quan</h5>
+            <div class="d-flex flex-column gap-3">
+                @foreach (var item in Model.RelatedProducts)
+                {
+                    <div class="d-flex align-items-center gap-3 p-2 border rounded hover-shadow bg-white">
+                        <img src="@item.ThumbnailUrl" class="rounded object-fit-cover" width="80" height="80">
+                        <div>
+                            <h6 class="mb-1 fw-bold text-truncate" style="max-width: 200px;">
+                                <a asp-action="Detail" asp-route-slug="@item.Slug" class="text-dark text-decoration-none stretched-link">
+                                    @item.Title
+                                </a>
+                            </h6>
+                            <div class="text-danger fw-bold small">@item.SalePrice.ToString("N0") đ</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>  

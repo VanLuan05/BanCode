@@ -19,5 +19,6 @@ public partial class OrderItem
 
     public virtual ProductPackage Package { get; set; } = null!;
 
-    public virtual Product Product { get; set; } = null!;
+
+    public virtual Product Product { get; set; } = null;
 }

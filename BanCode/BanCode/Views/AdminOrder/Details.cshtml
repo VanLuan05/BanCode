@@ -1,0 +1,100 @@
+﻿@model BanCode.Models.Order
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <a asp-action="Index" class="btn btn-outline-secondary mb-3"><i class="bi bi-arrow-left"></i> Quay lại</a>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    Thông tin sản phẩm
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Giá bán</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">@item.Product?.Title</div>
+                                        <small class="text-muted">ID: @item.ProductId</small>
+                                    </td>
+                                    <td>@item.PriceAtPurchase.ToString("N0") đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="d-flex justify-content-between border-top pt-3">
+                        <h5>Tổng cộng:</h5>
+                        <h4 class="text-danger fw-bold">@Model.TotalAmount.ToString("N0") đ</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-bold">
+                    Xử lý đơn hàng
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="small text-muted">Trạng thái hiện tại:</label>
+                        <div class="fs-5">
+                            @if (Model.Status == "completed")
+                            {
+                                <span class="text-success fw-bold"><i class="bi bi-check-circle"></i> Đã hoàn thành</span>
+                                <div class="small text-muted mt-1">Duyệt lúc: @Model.PaidAt</div>
+                            }
+                            else if (Model.Status == "cancelled")
+                            {
+                                <span class="text-secondary fw-bold">Đã hủy</span>
+                            }
+                            else
+                            {
+                                <span class="text-warning fw-bold"><i class="bi bi-clock"></i> Đang chờ duyệt</span>
+                                <div class="alert alert-info mt-2 small">
+                                    <i class="bi bi-info-circle"></i> Vui lòng kiểm tra tài khoản ngân hàng xem có khoản tiền <strong>@Model.TotalAmount.ToString("N0") đ</strong> với nội dung <strong>@Model.Id.ToString().Substring(0, 8)</strong> không.
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @if (Model.Status != "completed" && Model.Status != "cancelled")
+                    {
+                        <div class="d-grid gap-2">
+                            <form asp-action="ApproveOrder" asp-route-id="@Model.Id" method="post">
+                                <button type="submit" class="btn btn-success w-100 py-2 fw-bold" onclick="return confirm('Bạn chắc chắn đã nhận được tiền?');">
+                                    <i class="bi bi-check-lg"></i> XÁC NHẬN ĐÃ NHẬN TIỀN
+                                </button>
+                            </form>
+
+                            <form asp-action="CancelOrder" asp-route-id="@Model.Id" method="post">
+                                <button type="submit" class="btn btn-outline-danger w-100">Hủy đơn hàng này</button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="fw-bold">Thông tin khách hàng</h6>
+                    <p class="mb-1"><i class="bi bi-person"></i> @Model.User?.FullName</p>
+                    <p class="mb-1"><i class="bi bi-envelope"></i> @Model.User?.Email</p>
+                    <p class="mb-0 small text-muted">ID: @Model.UserId</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

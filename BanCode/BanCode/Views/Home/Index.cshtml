@@ -175,7 +175,9 @@
                                 <span class="badge bg-light text-secondary border">@item.CategoryName</span>
                             </div>
                             <h6 class="card-title fw-bold text-dark lh-sm mb-2" style="min-height: 40px;">
-                                <a href="#" class="text-decoration-none text-dark stretched-link">@item.Title</a>
+                                <a asp-controller="Home" asp-action="Detail" asp-route-slug="@item.Slug">
+                                    @item.Title
+                                </a>
                             </h6>
 
                             <div class="mb-3 d-flex align-items-center small text-warning">

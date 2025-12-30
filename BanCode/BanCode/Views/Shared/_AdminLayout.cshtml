@@ -91,8 +91,9 @@
 
             <p class="text-uppercase text-muted small fw-bold px-4 mt-3 mb-1">Bán hàng</p>
 
-            <a href="#" class="nav-link">
-                <i class="bi bi-cart-check"></i> Đơn hàng
+            <a asp-controller="AdminOrder" asp-action="Index"
+               class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminOrder" ? "active" : "")">
+                <i class="bi bi-cart-check"></i> Quản lý Đơn hàng
             </a>
             <a href="#" class="nav-link">
                 <i class="bi bi-people"></i> Khách hàng

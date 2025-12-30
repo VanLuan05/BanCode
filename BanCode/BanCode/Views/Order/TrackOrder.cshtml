@@ -1,0 +1,91 @@
+﻿@model BanCode.Models.Order
+@{
+    ViewData["Title"] = "Tra cứu đơn hàng";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="text-center fw-bold mb-4">📦 Tra cứu & Tải đơn hàng</h2>
+
+            <div class="card shadow-sm mb-5">
+                <div class="card-body p-4 bg-light rounded">
+                    <form asp-action="TrackOrder" method="post" class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Mã đơn hàng (Order ID)</label>
+                            <input type="text" name="orderIdStr" class="form-control" placeholder="Vd: 83a0f9..." required
+                                   value="@(Model?.Id.ToString() ?? "")">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Email mua hàng</label>
+                            <input type="email" name="email" class="form-control" placeholder="Email của bạn" required
+                                   value="@(Model?.User?.Email ?? "")">
+                        </div>
+                        <div class="col-12 text-center mt-3">
+                            <button type="submit" class="btn btn-primary px-5 fw-bold"><i class="bi bi-search"></i> Kiểm tra ngay</button>
+                        </div>
+                    </form>
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger mt-3 mb-0"><i class="bi bi-exclamation-triangle"></i> @ViewBag.Error</div>
+                    }
+                </div>
+            </div>
+
+            @if (Model != null)
+            {
+                <div class="card border-success shadow">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">Kết quả tra cứu</span>
+                        <span class="badge bg-white text-success">@Model.Status?.ToUpper()</span>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Ngày đặt:</strong> @Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</p>
+                        <p><strong>Khách hàng:</strong> @Model.User?.FullName</p>
+                        <hr />
+
+                        <h5 class="fw-bold mb-3">Sản phẩm của bạn:</h5>
+
+                        @foreach (var item in Model.OrderItems)
+                        {
+                            <div class="d-flex justify-content-between align-items-center border p-3 rounded mb-2 bg-white">
+                                <div>
+                                    <h6 class="fw-bold m-0 text-primary">@item.Product?.Title</h6>
+                                    <small class="text-muted">Gói: @item.Package?.PackageType</small>
+                                </div>
+
+                                <div>
+                                    @if (Model.Status == "completed")
+                                    {
+                                        <a asp-action="DownloadFile" asp-route-orderId="@Model.Id" asp-route-packageId="@item.PackageId"
+                                           class="btn btn-success fw-bold shadow-sm">
+                                            <i class="bi bi-cloud-download-fill"></i> TẢI SOURCE CODE
+                                        </a>
+                                    }
+                                    else if (Model.Status == "pending" || Model.Status == "processing")
+                                    {
+                                        <button class="btn btn-warning text-dark disabled">
+                                            <i class="bi bi-hourglass-split"></i> Đang chờ duyệt
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-secondary disabled">Đã hủy</button>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @if (Model.Status == "pending" || Model.Status == "processing")
+                        {
+                            <div class="alert alert-warning mt-3 small">
+                                <i class="bi bi-info-circle"></i> Đơn hàng đang được Admin kiểm tra. Vui lòng quay lại sau ít phút hoặc liên hệ Zalo hỗ trợ.
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
