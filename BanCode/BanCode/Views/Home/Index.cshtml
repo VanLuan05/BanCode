@@ -74,10 +74,13 @@
                     Kho thư viện hơn 100+ đồ án mẫu, website kinh doanh và phần mềm quản lý chuẩn kiến trúc (Clean Architecture). Tải về - Cài đặt - Chạy ngay.
                 </p>
 
-                <div class="input-group input-group-lg bg-white rounded-pill p-1 shadow-lg mb-4" style="max-width: 500px;">
-                    <input type="text" class="form-control border-0 rounded-pill ps-4" placeholder="Tìm kiếm: React, C#, Đồ án tốt nghiệp...">
-                    <button class="btn btn-primary rounded-pill px-4 fw-bold" type="button">Tìm kiếm</button>
-                </div>
+                <form asp-controller="Product" asp-action="Index" method="get" class="w-100 d-flex justify-content-center">
+                    <div class="input-group input-group-lg bg-white rounded-pill p-1 shadow-lg mb-4" style="max-width: 500px;">
+                        <input type="text" name="keyword" class="form-control border-0 rounded-pill ps-4"
+                               placeholder="Tìm kiếm: React, C#, Đồ án tốt nghiệp..." aria-label="Search">
+                        <button class="btn btn-primary rounded-pill px-4 fw-bold" type="submit">Tìm kiếm</button>
+                    </div>
+                </form>
 
                 <div class="d-flex gap-3 text-sm text-light opacity-75">
                     <span>✓ Code sạch</span>
@@ -249,18 +252,38 @@
 </div>
 
 <div class="container mb-5">
-    <div class="bg-primary text-white rounded-4 p-5 text-center shadow-lg"
+    <div class="bg-primary text-white rounded-4 p-5 text-center shadow-lg position-relative overflow-hidden"
          style="background-image: url('https://www.transparenttextures.com/patterns/cubes.png');">
-        <h2 class="fw-bold mb-3">Bạn cần hỗ trợ tìm đồ án phù hợp?</h2>
-        <p class="lead mb-4 opacity-75">Đội ngũ kỹ thuật của chúng tôi sẵn sàng tư vấn miễn phí cho bạn.</p>
-        <div class="d-flex justify-content-center gap-3">
-            <a href="https://zalo.me/0326371255" target="_blank" class="btn btn-light btn-lg fw-bold rounded-pill px-5 text-primary shadow hover-scale">
-                <i class="bi bi-chat-dots-fill me-2"></i> Chat Zalo Ngay
-            </a>
 
-            <a href="#" class="btn btn-outline-light btn-lg rounded-pill px-5">
-                Xem hướng dẫn mua
-            </a>
+        <div class="position-relative z-1">
+            <h2 class="fw-bold mb-3">Bạn cần hỗ trợ tìm đồ án phù hợp?</h2>
+            <p class="lead mb-4 opacity-75">Đội ngũ kỹ thuật của chúng tôi sẵn sàng tư vấn miễn phí cho bạn.</p>
+
+            <div class="d-flex justify-content-center flex-wrap gap-3">
+                <a href="https://zalo.me/0326371255" target="_blank"
+                   class="btn btn-light btn-lg fw-bold rounded-pill px-4 text-primary shadow hover-scale">
+                    <i class="bi bi-chat-dots-fill me-2"></i> Chat Zalo Ngay
+                </a>
+
+                <a asp-controller="Home" asp-action="Instruction"
+                   class="btn btn-outline-light btn-lg fw-bold rounded-pill px-4 hover-scale">
+                    <i class="bi bi-journal-text me-2"></i> Xem hướng dẫn mua
+                </a>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .hover-scale {
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+    /* Đảm bảo nền pattern không đè lên chữ */
+    .z-1 {
+        z-index: 1;
+    }
+</style>

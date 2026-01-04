@@ -17,33 +17,60 @@ namespace BanCode.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? keyword)
         {
             // 1. Lấy danh mục (Giữ nguyên)
             var categories = await _context.Categories.ToListAsync();
 
-            // 2. Lấy sản phẩm nổi bật (Giữ nguyên logic cũ)
-            var products = await _context.Products
+            // 2. XÂY DỰNG QUERY LẤY SẢN PHẨM
+            var productsQuery = _context.Products
                 .Include(p => p.Category)
                 .Include(p => p.ProductPackages)
                 .Where(p => p.Status == "published")
-                .OrderByDescending(p => p.CreatedAt)
-                .Take(8)
-                // Tìm đoạn Select này và sửa lại:
+                .AsQueryable(); // Chuyển sang IQueryable để nối chuỗi điều kiện
+
+            // --- XỬ LÝ TÌM KIẾM ---
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                string search = keyword.ToLower();
+                productsQuery = productsQuery.Where(p =>
+                    p.Title.ToLower().Contains(search) ||
+                    p.Slug.ToLower().Contains(search) ||
+                    p.TechStack.ToLower().Contains(search)
+                );
+
+                // Lưu từ khóa để hiển thị lại trên View
+                ViewBag.Keyword = keyword;
+            }
+            // ----------------------
+
+            // Sắp xếp mặc định
+            productsQuery = productsQuery.OrderByDescending(p => p.CreatedAt);
+
+            // LOGIC HIỂN THỊ: 
+            // - Nếu KHÔNG tìm kiếm: Chỉ lấy 8 sản phẩm mới nhất (Featured)
+            // - Nếu CÓ tìm kiếm: Lấy hết kết quả (hoặc giới hạn 20-50 tùy bạn)
+            if (string.IsNullOrEmpty(keyword))
+            {
+                productsQuery = productsQuery.Take(8);
+            }
+
+            // 3. THỰC HIỆN QUERY VÀ MAPPING (Giữ nguyên logic ProductViewModel của bạn)
+            var products = await productsQuery
                 .Select(p => new ProductViewModel
                 {
                     Id = p.Id,
                     Title = p.Title,
-                    Slug = p.Slug,  
+                    Slug = p.Slug,
                     ThumbnailUrl = p.ThumbnailUrl,
                     CategoryName = p.Category.Name,
-                    ReviewCount = 15, // Demo
+                    ReviewCount = 15,
 
-                    // Lấy giá và ID của gói Basic (Gói mặc định)
+                    // Lấy giá
                     Price = p.ProductPackages.Where(pkg => pkg.PackageType == "basic").Select(pkg => pkg.Price).FirstOrDefault(),
                     SalePrice = p.ProductPackages.Where(pkg => pkg.PackageType == "basic").Select(pkg => pkg.SalePrice ?? pkg.Price).FirstOrDefault(),
 
-                    // THÊM DÒNG NÀY: Lấy ID gói Basic để thêm vào giỏ
+                    // Lấy DefaultPackageId để thêm vào giỏ
                     DefaultPackageId = p.ProductPackages
                                         .Where(pkg => pkg.PackageType == "basic")
                                         .Select(pkg => pkg.Id)
@@ -51,7 +78,7 @@ namespace BanCode.Controllers
                 })
                 .ToListAsync();
 
-            // 3. Tạo dữ liệu đánh giá (Mock Data - Để tăng uy tín ngay lập tức)
+            // 4. Mock Data đánh giá (Giữ nguyên)
             var testimonials = new List<TestimonialViewModel>
     {
         new TestimonialViewModel { CustomerName = "Nguyễn Văn An", CustomerRole = "Sinh viên ĐH Bách Khoa", Comment = "Code chạy ngay lần đầu, báo cáo rất chi tiết giúp mình hiểu luồng đi của dữ liệu. Cảm ơn shop!", Rating = 5, AvatarUrl = "https://ui-avatars.com/api/?name=Nguyen+Van+An&background=0D8ABC&color=fff" },
@@ -62,9 +89,9 @@ namespace BanCode.Controllers
             var model = new HomeViewModel
             {
                 Categories = categories,
-                FeaturedProducts = products,
+                FeaturedProducts = products, // Lúc này nó chứa kết quả tìm kiếm hoặc 8 sản phẩm mới
                 Testimonials = testimonials,
-                TotalDownloads = 1540, // Con số "biết nói"
+                TotalDownloads = 1540,
                 TotalStudents = 980,
                 TotalProducts = products.Count + 50
             };
@@ -148,6 +175,11 @@ namespace BanCode.Controllers
             };
 
             return View(model);
+        }
+        // Trang hướng dẫn sử dụng
+        public IActionResult Instruction()
+        {
+            return View();
         }
     }
 }
