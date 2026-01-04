@@ -1,0 +1,112 @@
+﻿@model BanCode.Models.Order
+
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+}
+
+<div class="container py-5">
+    <div class="mb-4">
+        <a asp-action="History" class="text-decoration-none text-muted">
+            <i class="bi bi-arrow-left"></i> Quay lại danh sách
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Danh sách sản phẩm</h5>
+                </div>
+                <div class="card-body">
+                    @foreach (var item in Model.OrderItems)
+                    {
+                        <div class="d-flex align-items-center mb-3 pb-3 border-bottom last-no-border">
+                            <img src="@item.Product.ThumbnailUrl" class="rounded me-3" style="width: 80px; height: 60px; object-fit: cover;">
+
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 fw-bold">@item.Product.Title</h6>
+                                <p class="mb-0 text-muted small">Gói: <span class="text-uppercase">@item.Package.PackageType</span></p>
+                            </div>
+
+                            <div class="text-end">
+                                <p class="mb-1 fw-bold">@item.PriceAtPurchase.ToString("N0") đ</p>
+
+                                @if (Model.Status == "completed")
+                                {
+                                    <a href="@item.Package.FileUrl" class="btn btn-sm btn-success" download>
+                                        <i class="bi bi-cloud-arrow-down-fill"></i> Tải Source Code
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-muted border">Chưa thể tải</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Thông tin thanh toán</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Mã đơn hàng:</span>
+                        <span class="fw-bold">#@Model.Id.ToString().Substring(0, 8)</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Ngày đặt:</span>
+                        <span>@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Phương thức:</span>
+                        <span class="text-uppercase">@Model.PaymentMethod</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Trạng thái:</span>
+                        @if (Model.Status == "completed")
+                        {
+                            <span class="text-success fw-bold">Đã thanh toán</span>
+                        }
+                        else
+                        {
+                            <span class="text-warning fw-bold">@Model.Status</span>
+                        }
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 mb-0">Tổng cộng:</span>
+                        <span class="h4 text-primary fw-bold mb-0">@Model.TotalAmount.ToString("N0") đ</span>
+                    </div>
+
+                    @if (Model.Status == "pending")
+                    {
+                        <div class="d-grid mt-4">
+                            <button class="btn btn-warning py-2">Thanh toán ngay</button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mt-3">
+                <div class="card-body text-center">
+                    <small class="text-muted">Cần hỗ trợ? Liên hệ <a href="#">Zalo Admin</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .last-no-border:last-child {
+        border-bottom: none !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+</style>

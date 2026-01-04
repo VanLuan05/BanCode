@@ -1,0 +1,54 @@
+﻿@model BanCode.Models.Product
+
+@{
+    ViewData["Title"] = "Xóa sản phẩm";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4 text-danger">Xóa sản phẩm</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-action="Index">Danh sách sản phẩm</a></li>
+        <li class="breadcrumb-item active">Xóa</li>
+    </ol>
+
+    <div class="card mb-4 border-danger">
+        <div class="card-header bg-danger text-white">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            Cảnh báo hành động nguy hiểm
+        </div>
+        <div class="card-body">
+            <h4 class="text-center mb-4">Bạn có chắc chắn muốn xóa sản phẩm này không?</h4>
+            <div class="alert alert-warning text-center">
+                Lưu ý: Hành động này sẽ xóa vĩnh viễn sản phẩm, các tệp tin mã nguồn và ảnh liên quan.<br />
+                Nếu sản phẩm đã có người mua, hệ thống sẽ <b>từ chối xóa</b> để bảo vệ dữ liệu khách hàng.
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <dl class="row border p-3 bg-light rounded">
+                        <dt class="col-sm-4">Tên sản phẩm:</dt>
+                        <dd class="col-sm-8 fw-bold">@Model.Title</dd>
+
+                        <dt class="col-sm-4">Danh mục:</dt>
+                        <dd class="col-sm-8">@Model.Category?.Name</dd>
+
+                        <dt class="col-sm-4">Ngày tạo:</dt>
+                        <dd class="col-sm-8">@Model.CreatedAt?.ToString("dd/MM/yyyy")</dd>
+
+                        <dt class="col-sm-4">Hình ảnh:</dt>
+                        <dd class="col-sm-8">
+                            <img src="@Model.ThumbnailUrl" style="height: 100px; object-fit: cover;" class="rounded" />
+                        </dd>
+                    </dl>
+
+                    <form asp-action="Delete" class="text-center mt-4">
+                        <input type="hidden" asp-for="Id" />
+                        <button type="submit" class="btn btn-danger btn-lg px-5">Xác nhận Xóa</button>
+                        <a asp-action="Index" class="btn btn-secondary btn-lg px-5">Hủy bỏ</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

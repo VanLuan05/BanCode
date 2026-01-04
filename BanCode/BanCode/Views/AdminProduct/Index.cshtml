@@ -3,7 +3,21 @@
     ViewData["Title"] = "Quản lý sản phẩm";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-times-circle"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 <div class="container py-5">
     <div class="d-flex justify-content-between mb-4">
         <h2>📦 Kho Sản Phẩm</h2>
@@ -43,10 +57,12 @@
                         }
                     </td>
                     <td>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">
-                            <i class="fas fa-edit"></i>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning me-1">
+                            <i class="bi bi-pencil"></i>
                         </a>
-                        <a href="#" class="btn btn-sm btn-outline-danger">Xóa</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                        </a>
                     </td>
                 </tr>
             }

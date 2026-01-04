@@ -245,5 +245,74 @@ namespace BanCode.Controllers
             ViewBag.Categories = new SelectList(_context.Categories, "Id", "Name", model.CategoryId);
             return View(model);
         }
+
+        // 6. TRANG XÁC NHẬN XÓA (GET)
+        public async Task<IActionResult> Delete(Guid? id)
+        {
+            if (id == null) return NotFound();
+
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (product == null) return NotFound();
+
+            return View(product);
+        }
+
+        // 7. XỬ LÝ XÓA (POST)
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        {
+            // 1. Kiểm tra xem sản phẩm đã có ai mua chưa
+            var hasOrders = await _context.OrderItems.AnyAsync(oi => oi.ProductId == id);
+            if (hasOrders)
+            {
+                TempData["Error"] = "Không thể xóa sản phẩm này vì đã có đơn hàng liên quan. Bạn chỉ có thể chuyển trạng thái sang 'Ngừng kinh doanh' (Draft).";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // 2. Lấy thông tin sản phẩm và các gói liên quan (để xóa file vật lý)
+            var product = await _context.Products
+                .Include(p => p.ProductPackages) // Để lấy đường dẫn file code
+                .Include(p => p.ProductImages)   // Để lấy ảnh phụ (nếu có)
+                .Include(p => p.Reviews)         // Để xóa đánh giá
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (product != null)
+            {
+                // 3. Xóa File ảnh Thumbnail
+                if (!string.IsNullOrEmpty(product.ThumbnailUrl))
+                {
+                    string oldPath = Path.Combine(_env.WebRootPath, product.ThumbnailUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+                }
+
+                // 4. Xóa File Source Code của từng gói
+                foreach (var package in product.ProductPackages)
+                {
+                    if (!string.IsNullOrEmpty(package.FileUrl))
+                    {
+                        string filePath = Path.Combine(_env.WebRootPath, package.FileUrl.TrimStart('/'));
+                        if (System.IO.File.Exists(filePath)) System.IO.File.Delete(filePath);
+                    }
+                }
+
+                // 5. Xóa dữ liệu trong Database
+                // Do đã cấu hình Cascade hoặc EF Core tự hiểu quan hệ, ta xóa Product thì Packages/Reviews sẽ đi theo
+                // Tuy nhiên, nếu Database chưa set Cascade Delete, ta nên xóa tay cho chắc:
+                _context.ProductPackages.RemoveRange(product.ProductPackages);
+                _context.Reviews.RemoveRange(product.Reviews);
+                // _context.ProductImages.RemoveRange(product.ProductImages); // Nếu có bảng này
+
+                _context.Products.Remove(product);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = "Đã xóa sản phẩm và các file liên quan thành công.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

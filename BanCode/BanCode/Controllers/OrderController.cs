@@ -1,10 +1,13 @@
-﻿using BanCode.Models;
+﻿using BanCode.Helpers;
+using BanCode.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Hosting;
-using BanCode.Helpers;
+using System.Security.Claims;
 namespace BanCode.Controllers
 {
+    [Authorize] // Bắt buộc đăng nhập mới xem được
     public class OrderController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -123,7 +126,7 @@ namespace BanCode.Controllers
             return View();
         }
 
-        // ... (Các code cũ giữ nguyên)
+       
 
         // 5. TRANG TRA CỨU ĐƠN HÀNG (GET)
         [HttpGet]
@@ -205,6 +208,41 @@ namespace BanCode.Controllers
             byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             string fileName = Path.GetFileName(filePath);
             return File(fileBytes, "application/octet-stream", fileName);
+        }
+
+        // 8. DANH SÁCH ĐƠN MUA
+        public async Task<IActionResult> History()
+        {
+            // Lấy ID người dùng hiện tại
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            // Lấy danh sách đơn hàng của user đó (kèm theo chi tiết sản phẩm để hiển thị)
+            var orders = await _context.Orders
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product) // Lấy tên sản phẩm
+                .Where(o => o.UserId == Guid.Parse(userId))
+                .OrderByDescending(o => o.CreatedAt) // Mới nhất lên đầu
+                .ToListAsync();
+
+            return View(orders);
+        }
+
+        // 9. CHI TIẾT ĐƠN HÀNG
+        public async Task<IActionResult> Details(Guid id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Package) // Lấy gói để lấy FileUrl
+                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == Guid.Parse(userId));
+
+            if (order == null) return NotFound();
+
+            return View(order);
         }
     }
 }
