@@ -1,0 +1,150 @@
+﻿@{
+    ViewData["Title"] = "Bảng giá dịch vụ";
+}
+
+<div class="bg-light py-5 mb-5 text-center">
+    <div class="container">
+        <h1 class="fw-bold display-5">Chọn gói phù hợp với nhu cầu của bạn</h1>
+        <p class="lead text-muted mx-auto" style="max-width: 700px;">
+            Dù bạn cần code để tham khảo hay một đồ án hoàn chỉnh để bảo vệ, chúng tôi đều có giải pháp tối ưu chi phí cho bạn.
+        </p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row row-cols-1 row-cols-md-3 mb-3 text-center g-4">
+
+        <div class="col">
+            <div class="card mb-4 rounded-3 shadow-sm h-100 hover-card">
+                <div class="card-header py-3">
+                    <h4 class="my-0 fw-normal">Gói Cơ Bản</h4>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h1 class="card-title pricing-card-title text-primary">Giá rẻ nhất</h1>
+                    <ul class="list-unstyled mt-3 mb-4 text-start mx-auto">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Full Source Code</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Hướng dẫn chạy Demo</li>
+                        <li class="mb-2 text-muted"><i class="bi bi-x-circle-fill me-2"></i>Không bao gồm Báo cáo</li>
+                        <li class="mb-2 text-muted"><i class="bi bi-x-circle-fill me-2"></i>Tự cài đặt môi trường</li>
+                    </ul>
+                    <div class="mt-auto">
+                        <p class="text-muted small">Phù hợp: Developer cần code tham khảo, Sinh viên khá giỏi tự setup được.</p>
+                        <a asp-controller="Home" asp-action="Index" class="w-100 btn btn-lg btn-outline-primary rounded-pill">Xem Sản Phẩm</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card mb-4 rounded-3 shadow border-primary h-100 transform-scale">
+                <div class="card-header py-3 text-white bg-primary border-primary">
+                    <h4 class="my-0 fw-normal">Gói Tiêu Chuẩn <span class="badge bg-warning text-dark ms-1" style="font-size: 0.6em;">Phổ biến</span></h4>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h1 class="card-title pricing-card-title">Tối ưu</h1>
+                    <ul class="list-unstyled mt-3 mb-4 text-start mx-auto fw-bold">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i>Full Source Code</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i>Kèm File Báo cáo (Word)</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i>Kèm Slide thuyết trình</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i>Hướng dẫn cài đặt chi tiết</li>
+                    </ul>
+                    <div class="mt-auto">
+                        <p class="text-muted small">Phù hợp: Sinh viên làm đồ án môn học, cần tài liệu tham khảo chuẩn.</p>
+                        <a asp-controller="Home" asp-action="Index" class="w-100 btn btn-lg btn-primary rounded-pill">Xem Sản Phẩm</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card mb-4 rounded-3 shadow-sm h-100 hover-card">
+                <div class="card-header py-3">
+                    <h4 class="my-0 fw-normal">Gói Cao Cấp</h4>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h1 class="card-title pricing-card-title text-success">VIP Support</h1>
+                    <ul class="list-unstyled mt-3 mb-4 text-start mx-auto">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Tất cả quyền lợi gói Pro</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Hỗ trợ cài đặt qua UltraView</strong></li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Support fix lỗi môi trường</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Giải thích luồng code (30p)</li>
+                    </ul>
+                    <div class="mt-auto">
+                        <p class="text-muted small">Phù hợp: Đồ án Tốt nghiệp, người không rành cài đặt server.</p>
+                        <a asp-controller="Home" asp-action="Index" class="w-100 btn btn-lg btn-outline-success rounded-pill">Xem Sản Phẩm</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-5 mb-4 bg-light rounded-3 shadow-sm border mt-5">
+        <div class="container-fluid py-3 text-center">
+            <h2 class="display-6 fw-bold">Bạn cần chức năng riêng biệt?</h2>
+            <p class="col-md-8 fs-5 mx-auto text-muted mt-3">
+                Ngoài các source code có sẵn, chúng tôi nhận phát triển thêm chức năng hoặc viết mới hoàn toàn theo yêu cầu của bạn.
+            </p>
+            <div class="mt-4">
+                <a asp-controller="Contact" asp-action="Index" class="btn btn-dark btn-lg px-4 gap-3 rounded-pill fw-bold">
+                    <i class="bi bi-chat-text-fill me-2"></i> Liên hệ báo giá
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-lg-8 mx-auto">
+            <h3 class="fw-bold text-center mb-4">Câu hỏi về giá cả</h3>
+            <div class="accordion" id="accordionPricing">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                            Tôi có phải trả phí duy trì hàng tháng không?
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionPricing">
+                        <div class="accordion-body">
+                            Không. Bạn chỉ cần <strong>thanh toán 1 lần duy nhất</strong> và sở hữu file mã nguồn trọn đời.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                            Nếu tôi mua gói Basic rồi muốn nâng cấp lên Premium được không?
+                        </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionPricing">
+                        <div class="accordion-body">
+                            Được. Bạn chỉ cần liên hệ qua Zalo, thanh toán phần chênh lệch giá, chúng tôi sẽ gửi thêm tài liệu và hỗ trợ cài đặt cho bạn.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Hiệu ứng phóng to gói Pro */
+    .transform-scale {
+        transform: scale(1.05);
+        z-index: 10;
+        border-width: 2px;
+    }
+
+    .hover-card {
+        transition: transform 0.3s;
+    }
+
+        .hover-card:hover {
+            transform: translateY(-5px);
+        }
+
+    /* Responsive: Mobile không phóng to */
+    @@media (max-width: 768px) {
+        .transform-scale {
+            transform: none;
+        }
+    }
+</style>
