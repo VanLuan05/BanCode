@@ -5,6 +5,13 @@ namespace BanCode.Controllers
 {
     public class ContactController : Controller
     {
+        private readonly ApplicationDbContext _context;
+
+        public ContactController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
         // 1. Hiển thị trang liên hệ
         public IActionResult Index()
         {

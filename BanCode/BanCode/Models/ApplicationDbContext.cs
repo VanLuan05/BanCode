@@ -34,6 +34,8 @@ public partial class ApplicationDbContext : IdentityDbContext<
     public virtual DbSet<ProductImage> ProductImages { get; set; }
     public virtual DbSet<ProductPackage> ProductPackages { get; set; }
     public virtual DbSet<Review> Reviews { get; set; }
+  
+
     // Không cần DbSet<User> vì IdentityDbContext đã có sẵn
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
