@@ -13,7 +13,7 @@
                     <form asp-action="TrackOrder" method="post" class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Mã đơn hàng (Order ID)</label>
-                            <input type="text" name="orderIdStr" class="form-control" placeholder="Vd: 83a0f9..." required
+                            <input type="text" name="orderIdStr" class="form-control" placeholder="Vd: 1bxxxx-xxxx-xxxxx...." required
                                    value="@(Model?.Id.ToString() ?? "")">
                         </div>
                         <div class="col-md-6">

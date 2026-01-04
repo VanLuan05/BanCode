@@ -55,7 +55,7 @@
             <div class="card bg-light border-0 rounded-4 p-4 mb-4">
                 <h5 class="fw-bold mb-3">Chọn gói phù hợp:</h5>
 
-                <form asp-controller="Order" asp-action="Checkout" method="get">
+                <form method="get">
 
                     @foreach (var pkg in Model.Packages)
                     {
@@ -70,22 +70,38 @@
                                         <div class="small text-muted">Source code + Database</div>
                                     </div>
                                     <div class="text-end">
-                                        <div class="fw-bold fs-5 text-danger">@((pkg.SalePrice ?? pkg.Price).ToString("N0")) đ</div>
+                                        @{
+                                            decimal finalPrice = pkg.SalePrice ?? pkg.Price;
+                                        }
+                                        <div class="fw-bold fs-5 text-danger">@finalPrice.ToString("N0") đ</div>
+
+                                        @if (pkg.SalePrice < pkg.Price)
+                                        {
+                                            <small class="text-decoration-line-through text-muted">@pkg.Price.ToString("N0") đ</small>
+                                        }
                                     </div>
                                 </div>
                             </label>
                         </div>
                     }
 
-                    <div class="d-grid gap-2 mt-3">
-                        <button type="submit" class="btn btn-primary btn-lg fw-bold rounded-pill py-3 shadow hover-scale">
-                            <i class="bi bi-cart-check me-2"></i> TIẾN HÀNH THANH TOÁN
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" asp-controller="Cart" asp-action="BuyNow"
+                                class="btn btn-danger btn-lg fw-bold rounded-pill py-3 shadow hover-scale">
+                            <i class="bi bi-lightning-charge-fill me-2"></i> THANH TOÁN NGAY
                         </button>
-                        <small class="text-center text-muted fst-italic">Cam kết bảo mật thông tin & hoàn tiền nếu lỗi.</small>
+
+                        <button type="submit" asp-controller="Cart" asp-action="AddToCart"
+                                class="btn btn-outline-primary btn-lg fw-bold rounded-pill py-3 hover-scale">
+                            <i class="bi bi-cart-plus-fill me-2"></i> THÊM VÀO GIỎ HÀNG
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <small class="text-muted fst-italic"><i class="bi bi-shield-lock"></i> Cam kết bảo mật thông tin & hỗ trợ cài đặt.</small>
                     </div>
                 </form>
             </div>
-
             <div class="text-muted">
                 @Model.Description
             </div>

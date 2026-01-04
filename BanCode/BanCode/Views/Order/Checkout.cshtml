@@ -1,47 +1,72 @@
-﻿@model BanCode.Models.ProductPackage
-@{
-    ViewData["Title"] = "Xác nhận đơn hàng";
+﻿@{
+    ViewData["Title"] = "Thanh toán";
+    var cart = ViewBag.Cart as List<BanCode.Models.CartItem>;
+    decimal total = ViewBag.TotalAmount ?? 0;
 }
 
 <div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <h3 class="fw-bold mb-4 text-primary"><i class="bi bi-bag-check"></i> Xác nhận thanh toán</h3>
-
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-body p-4">
-                    <div class="d-flex gap-3 mb-4 border-bottom pb-3">
-                        <div class="bg-light rounded p-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                            <i class="bi bi-box-seam fs-3 text-primary"></i>
-                        </div>
-                        <div>
-                            <h6 class="fw-bold mb-1">@Model.Product?.Title</h6>
-                            <span class="badge bg-info text-dark">Gói: @Model.PackageType.ToUpper()</span>
-                        </div>
+    <div class="row g-5">
+        <div class="col-md-7 col-lg-8">
+            <h4 class="mb-3 fw-bold">Thông tin thanh toán</h4>
+            <form asp-action="ProcessPayment" method="post" class="needs-validation">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Họ và tên</label>
+                        <input type="text" class="form-control" name="fullName" required placeholder="Nguyễn Văn A">
                     </div>
 
-                    <form asp-action="ProcessPayment" method="post">
-                        <input type="hidden" name="packageId" value="@Model.Id" />
+                    <div class="col-12">
+                        <label class="form-label">Email (để nhận code)</label>
+                        <input type="email" class="form-control" name="email" required placeholder="email@example.com">
+                    </div>
+                </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Họ và tên</label>
-                            <input type="text" name="fullName" class="form-control" required placeholder="Nhập tên của bạn" />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Email nhận code</label>
-                            <input type="email" name="email" class="form-control" required placeholder="example@gmail.com" />
-                            <div class="form-text text-danger"><i class="bi bi-exclamation-circle"></i> Link tải sẽ được gửi vào email này.</div>
-                        </div>
+                <hr class="my-4">
 
-                        <div class="d-flex justify-content-between align-items-center py-3 border-top mt-4">
-                            <span class="text-muted">Tổng thanh toán:</span>
-                            <span class="fs-4 fw-bold text-primary">@((Model.SalePrice ?? Model.Price).ToString("N0")) đ</span>
-                        </div>
+                <h4 class="mb-3 fw-bold">Phương thức thanh toán</h4>
+                <div class="my-3">
+                    <div class="form-check">
+                        <input id="bank" name="paymentMethod" type="radio" class="form-check-input" checked required>
+                        <label class="form-check-label" for="bank">Chuyển khoản ngân hàng (QR Code)</label>
+                    </div>
+                </div>
 
-                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow">
-                            XÁC NHẬN & LẤY MÃ QR
-                        </button>
-                    </form>
+                <hr class="my-4">
+
+                <button class="w-100 btn btn-primary btn-lg rounded-pill py-3 fw-bold shadow hover-scale" type="submit">
+                    <i class="bi bi-lock-fill me-2"></i> XÁC NHẬN THANH TOÁN @total.ToString("N0") đ
+                </button>
+            </form>
+        </div>
+
+        <div class="col-md-5 col-lg-4">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body p-4">
+                    <h4 class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-primary fw-bold">Đơn hàng của bạn</span>
+                        <span class="badge bg-primary rounded-pill">@cart?.Count</span>
+                    </h4>
+
+                    <ul class="list-group mb-3 border-0">
+                        @if (cart != null)
+                        {
+                            foreach (var item in cart)
+                            {
+                                <li class="list-group-item d-flex justify-content-between lh-sm bg-transparent border-bottom">
+                                    <div>
+                                        <h6 class="my-0 small fw-bold text-truncate" style="max-width: 180px;">@item.ProductName</h6>
+                                        <small class="text-muted">Gói: @item.PackageType</small>
+                                    </div>
+                                    <span class="text-muted">@item.Price.ToString("N0") đ</span>
+                                </li>
+                            }
+                        }
+
+                        <li class="list-group-item d-flex justify-content-between bg-transparent border-0 pt-3">
+                            <span class="fw-bold">Tổng cộng (VND)</span>
+                            <strong class="fs-5 text-danger">@total.ToString("N0") đ</strong>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>

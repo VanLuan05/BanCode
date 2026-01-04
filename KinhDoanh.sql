@@ -234,3 +234,17 @@ BEGIN
         RAISERROR(@ErrorMessage, 16, 1);
     END CATCH
 END;
+
+
+
+-- Cập nhật lại quy tắt xử lý thanh toán mua hàng
+
+-- 1. Xóa quy tắc cũ
+ALTER TABLE orders DROP CONSTRAINT CK_orders_status;
+GO
+
+-- 2. Thêm quy tắc mới (Bao gồm cả 'processing')
+ALTER TABLE orders 
+ADD CONSTRAINT CK_orders_status 
+CHECK (status IN ('pending', 'processing', 'completed', 'cancelled'));
+GO

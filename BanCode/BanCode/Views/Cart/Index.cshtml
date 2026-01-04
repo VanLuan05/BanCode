@@ -1,0 +1,112 @@
+﻿@model List<BanCode.Models.CartItem>
+@{
+    ViewData["Title"] = "Giỏ hàng của bạn";
+    decimal total = Model.Sum(x => x.Price);
+}
+
+<div class="container py-5">
+    <div class="d-flex align-items-center mb-4">
+        <h2 class="fw-bold m-0">🛒 Giỏ hàng của bạn</h2>
+        <span class="badge bg-primary ms-3 rounded-pill">@Model.Count sản phẩm</span>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="text-center py-5 bg-light rounded-3 shadow-sm">
+            <div class="display-1 text-muted mb-3"><i class="bi bi-cart-x"></i></div>
+            <h4 class="fw-bold text-secondary">Giỏ hàng đang trống</h4>
+            <p class="text-muted mb-4">Bạn chưa chọn sản phẩm nào.</p>
+            <a href="/" class="btn btn-primary btn-lg rounded-pill px-5 shadow-sm hover-scale">
+                <i class="bi bi-arrow-left me-2"></i> Quay lại mua sắm
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-secondary text-uppercase small fw-bold">
+                                <tr>
+                                    <th class="ps-4 py-3" style="min-width: 300px;">Sản phẩm</th>
+                                    <th class="py-3">Đơn giá</th>
+                                    <th class="text-end pe-4 py-3">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td class="ps-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="flex-shrink-0">
+                                                    <img src="@(string.IsNullOrEmpty(item.ThumbnailUrl) ? "https://placehold.co/100" : item.ThumbnailUrl)"
+                                                         class="rounded border" width="70" height="70" style="object-fit:cover" alt="@item.ProductName">
+                                                </div>
+                                                <div class="ms-3">
+                                                    <h6 class="mb-1 fw-bold text-dark">
+                                                        <a href="#" class="text-decoration-none text-dark">@item.ProductName</a>
+                                                    </h6>
+                                                    <span class="badge bg-info bg-opacity-10 text-info border border-info rounded-pill">
+                                                        Gói: @item.PackageType
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="fw-bold text-primary">@item.Price.ToString("N0") đ</td>
+                                        <td class="text-end pe-4">
+                                            <a asp-action="Remove" asp-route-packageId="@item.PackageId"
+                                               class="btn btn-outline-danger btn-sm rounded-circle shadow-sm"
+                                               title="Xóa khỏi giỏ"
+                                               onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 bg-white">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4">Tóm tắt đơn hàng</h5>
+
+                        <div class="d-flex justify-content-between mb-3 text-muted">
+                            <span>Tạm tính:</span>
+                            <span>@total.ToString("N0") đ</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 text-muted">
+                            <span>Giảm giá:</span>
+                            <span>0 đ</span>
+                        </div>
+                        <hr class="border-secondary opacity-25">
+
+                        <div class="d-flex justify-content-between mb-4 align-items-center">
+                            <span class="fw-bold fs-5">Tổng cộng:</span>
+                            <span class="fw-bold fs-4 text-danger">@total.ToString("N0") đ</span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a asp-controller="Order" asp-action="Checkout" class="btn btn-primary py-3 fw-bold rounded-pill shadow hover-scale">
+                                <i class="bi bi-credit-card-2-front me-2"></i> TIẾN HÀNH THANH TOÁN
+                            </a>
+                            <a href="/" class="btn btn-outline-secondary py-2 rounded-pill">
+                                Tiếp tục xem thêm
+                            </a>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top text-center small text-muted">
+                            <i class="bi bi-shield-check text-success me-1"></i> Bảo mật thanh toán 100%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -29,18 +29,25 @@ namespace BanCode.Controllers
                 .Where(p => p.Status == "published")
                 .OrderByDescending(p => p.CreatedAt)
                 .Take(8)
+                // Tìm đoạn Select này và sửa lại:
                 .Select(p => new ProductViewModel
                 {
                     Id = p.Id,
                     Title = p.Title,
-                    Slug = p.Slug,
+                    Slug = p.Slug,  
                     ThumbnailUrl = p.ThumbnailUrl,
                     CategoryName = p.Category.Name,
-                    TechStack = p.TechStack,
-                    Price = p.ProductPackages.FirstOrDefault(pkg => pkg.PackageType == "basic").Price,
-                    SalePrice = p.ProductPackages.FirstOrDefault(pkg => pkg.PackageType == "basic").SalePrice ?? 0,
-                    Rating = 5,
-                    ReviewCount = 12 // Giả lập số lượng review
+                    ReviewCount = 15, // Demo
+
+                    // Lấy giá và ID của gói Basic (Gói mặc định)
+                    Price = p.ProductPackages.Where(pkg => pkg.PackageType == "basic").Select(pkg => pkg.Price).FirstOrDefault(),
+                    SalePrice = p.ProductPackages.Where(pkg => pkg.PackageType == "basic").Select(pkg => pkg.SalePrice ?? pkg.Price).FirstOrDefault(),
+
+                    // THÊM DÒNG NÀY: Lấy ID gói Basic để thêm vào giỏ
+                    DefaultPackageId = p.ProductPackages
+                                        .Where(pkg => pkg.PackageType == "basic")
+                                        .Select(pkg => pkg.Id)
+                                        .FirstOrDefault()
                 })
                 .ToListAsync();
 

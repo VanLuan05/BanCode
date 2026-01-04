@@ -14,6 +14,9 @@ namespace BanCode.Models
         public string TechStack { get; set; }
         public double Rating { get; set; }
         public int ReviewCount { get; set; }
+
+        // Thêm thuộc tính DefaultPackageId để xác định gói mặc định
+        public Guid DefaultPackageId { get; set; }
     }
 
     // Class mới để chứa đánh giá khách hàng

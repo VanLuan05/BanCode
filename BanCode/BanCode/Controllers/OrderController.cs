@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
+using BanCode.Helpers;
 namespace BanCode.Controllers
 {
     public class OrderController : Controller
@@ -14,66 +15,72 @@ namespace BanCode.Controllers
             _env = env;
         }
 
-        // 1. TRANG CHECKOUT (Xem lại đơn hàng & Điền thông tin)
-        [HttpGet]
-        public async Task<IActionResult> Checkout(Guid packageId)
+        // 1. TRANG THANH TOÁN (GET)
+        public IActionResult Checkout()
         {
-            var package = await _context.ProductPackages
-                .Include(p => p.Product)
-                .FirstOrDefaultAsync(p => p.Id == packageId);
+            // Lấy giỏ hàng từ Session
+            var cart = HttpContext.Session.Get<List<CartItem>>("Cart") ?? new List<CartItem>();
 
-            if (package == null) return NotFound();
+            if (cart.Count == 0)
+            {
+                return RedirectToAction("Index", "Cart"); // Giỏ rỗng thì đá về trang giỏ
+            }
 
-            // Truyền gói tin sang View để hiển thị
-            return View(package);
+            // Truyền giỏ hàng sang View để hiển thị danh sách
+            ViewBag.Cart = cart;
+            ViewBag.TotalAmount = cart.Sum(item => item.Price);
+
+            return View();
         }
-
-        // 2. XỬ LÝ THANH TOÁN (Tạo đơn hàng -> Chuyển sang trang QR)
+        // 2. XỬ LÝ THANH TOÁN (POST)
         [HttpPost]
-        public async Task<IActionResult> ProcessPayment(Guid packageId, string fullName, string email)
+        public async Task<IActionResult> ProcessPayment(string fullName, string email)
         {
-            var package = await _context.ProductPackages.FindAsync(packageId);
-            if (package == null) return NotFound();
+            // Lấy giỏ hàng
+            var cart = HttpContext.Session.Get<List<CartItem>>("Cart") ?? new List<CartItem>();
 
-            // A. Kiểm tra hoặc tạo User mới (Khách vãng lai)
+            if (cart.Count == 0) return RedirectToAction("Index", "Cart");
+
+            // 1. Tạo hoặc lấy thông tin User (Khách hàng)
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
             {
                 user = new User
                 {
                     Id = Guid.NewGuid(),
-                    Email = email,
                     FullName = fullName,
-                    Role = "customer",
+                    Email = email,
                     CreatedAt = DateTime.Now
                 };
                 _context.Users.Add(user);
             }
 
-            // B. Tạo Đơn hàng (Pending)
+            // 2. Tạo Đơn hàng (Order)
             var order = new Order
             {
                 Id = Guid.NewGuid(),
                 UserId = user.Id,
-                TotalAmount = package.SalePrice ?? package.Price,
+                TotalAmount = cart.Sum(i => i.Price),
                 Status = "pending", // Chờ thanh toán
-                PaymentMethod = "QR_BANK",
                 CreatedAt = DateTime.Now
             };
             _context.Orders.Add(order);
 
-            // C. Tạo Chi tiết đơn hàng
-            var orderItem = new OrderItem
+            // 3. Tạo Chi tiết đơn hàng (OrderItem) - Lưu từng món trong giỏ
+            foreach (var item in cart)
             {
-                OrderId = order.Id,
-                ProductId = package.ProductId,
-                PackageId = package.Id,
-                PriceAtPurchase = package.SalePrice ?? package.Price
-            };
-            _context.OrderItems.Add(orderItem);
+                var orderItem = new OrderItem
+                {
+                    OrderId = order.Id,
+                    ProductId = item.ProductId,
+                    PackageId = item.PackageId,
+                    PriceAtPurchase = item.Price
+                };
+                _context.OrderItems.Add(orderItem);
+            }
 
             await _context.SaveChangesAsync();
-
+            HttpContext.Session.Remove("Cart");
             // D. Chuyển hướng sang trang Quét QR
             return RedirectToAction("Payment", new { orderId = order.Id });
         }
