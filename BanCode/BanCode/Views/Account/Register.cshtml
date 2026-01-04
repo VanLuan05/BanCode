@@ -1,52 +1,120 @@
 ﻿@model BanCode.Models.RegisterViewModel
 
 @{
-    ViewData["Title"] = "Đăng ký thành viên";
+    ViewData["Title"] = "Đăng ký tài khoản";
 }
 
-<div class="container mt-5">
+<div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white text-center">
-                    <h3>Đăng ký tài khoản</h3>
-                </div>
-                <div class="card-body">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-body p-5">
+                    <h2 class="text-center fw-bold mb-4">Đăng Ký</h2>
+
                     <form asp-action="Register" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                        <div class="mb-3">
-                            <label asp-for="FullName" class="form-label">Họ và Tên</label>
-                            <input asp-for="FullName" class="form-control" placeholder="Ví dụ: Nguyễn Văn A" />
-                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        <div class="form-floating mb-3">
+                            <input asp-for="FullName" class="form-control" placeholder="Họ tên" />
+                            <label asp-for="FullName">Họ và tên</label>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label">Email</label>
+                        <div class="form-floating mb-3">
                             <input asp-for="Email" class="form-control" placeholder="name@example.com" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
+                            <label asp-for="Email">Email</label>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label">Mật khẩu</label>
-                            <input asp-for="Password" class="form-control" type="password" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Mật khẩu" />
+                            <label asp-for="Password">Mật khẩu</label>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="ConfirmPassword" class="form-label">Nhập lại mật khẩu</label>
-                            <input asp-for="ConfirmPassword" class="form-control" type="password" />
-                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        <div class="form-floating mb-3">
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" />
+                            <label asp-for="ConfirmPassword">Xác nhận mật khẩu</label>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                         </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg">Đăng Ký</button>
+                        <div class="mb-3 form-check">
+                            <input asp-for="IsTermsAccepted" class="form-check-input" type="checkbox" id="termsCheck" />
+                            <label class="form-check-label" for="termsCheck">
+                                Tôi đồng ý với
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#policyModal" class="text-decoration-none fw-bold">
+                                    Điều khoản & Chính sách
+                                </a>
+                            </label>
+                            <div class="d-block">
+                                <span asp-validation-for="IsTermsAccepted" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">Đăng Ký Ngay</button>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <span class="text-muted">Đã có tài khoản?</span>
+                            <a asp-action="Login" class="text-decoration-none fw-bold">Đăng nhập</a>
                         </div>
                     </form>
                 </div>
-                <div class="card-footer text-center">
-                    <span>Đã có tài khoản? <a asp-action="Login" class="text-decoration-none">Đăng nhập</a></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="policyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-shield-check me-2"></i>Điều khoản & Chính sách dịch vụ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-justify">
+
+                <div class="alert alert-warning border-0 small">
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    Vui lòng đọc kỹ các điều khoản dưới đây trước khi đăng ký và mua hàng.
                 </div>
+
+                <h6 class="fw-bold text-primary">1. Quy định về Bản quyền & Sử dụng</h6>
+                <ul class="small text-muted ps-3">
+                    <li>Source code được cung cấp nhằm mục đích <strong>tham khảo, học tập và nghiên cứu</strong>.</li>
+                    <li>Bạn có quyền chỉnh sửa, phát triển thêm các tính năng dựa trên mã nguồn gốc.</li>
+                    <li><strong>Nghiêm cấm:</strong> Hành vi chia sẻ công khai, bán lại (resell) hoặc thương mại hóa mã nguồn này dưới mọi hình thức mà không có sự cho phép của BanCode.</li>
+                </ul>
+
+                <hr class="text-muted opacity-25">
+
+                <h6 class="fw-bold text-primary">2. Chính sách Bảo hành & Hỗ trợ</h6>
+                <ul class="small text-muted ps-3">
+                    <li><strong>Phạm vi hỗ trợ:</strong> Hướng dẫn cài đặt môi trường, setup Database, sửa các lỗi (bug) có sẵn trong code gốc.</li>
+                    <li><strong>Từ chối hỗ trợ:</strong> Chúng tôi không hỗ trợ dạy lập trình cơ bản hoặc viết thêm tính năng mới.</li>
+                </ul>
+
+                <hr class="text-muted opacity-25">
+
+                <h6 class="fw-bold text-primary">3. Chính sách Hoàn tiền (Refund)</h6>
+                <p class="small text-muted mb-1">Chỉ chấp nhận hoàn tiền trong trường hợp:</p>
+                <ul class="small text-muted ps-3">
+                    <li>Mã nguồn bị lỗi nghiêm trọng không thể vận hành.</li>
+                    <li>Đội ngũ kỹ thuật không thể khắc phục được lỗi.</li>
+                </ul>
+
+                <hr class="text-muted opacity-25">
+
+                <h6 class="fw-bold text-primary">4. Bảo mật thông tin</h6>
+                <ul class="small text-muted ps-3">
+                    <li>Thông tin cá nhân được bảo mật tuyệt đối.</li>
+                </ul>
+
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary fw-bold" data-bs-dismiss="modal" onclick="acceptTerms()">Tôi đồng ý</button>
             </div>
         </div>
     </div>
@@ -56,4 +124,12 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        // Hàm tự động tích vào ô checkbox khi bấm nút "Tôi đồng ý"
+        function acceptTerms() {
+            var checkbox = document.getElementById('termsCheck');
+            checkbox.checked = true;
+        }
+    </script>
 }

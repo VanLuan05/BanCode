@@ -30,5 +30,16 @@ namespace BanCode.Models
         [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp")]
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; }
+
+
+        [MustBeTrue(ErrorMessage = "Bạn cần đồng ý với điều khoản & chính sách để tiếp tục.")]
+        public bool IsTermsAccepted { get; set; }
+    }
+    public class MustBeTrueAttribute : ValidationAttribute
+    {
+        public override bool IsValid(object value)
+        {
+            return value is bool b && b;
+        }
     }
 }
