@@ -1,0 +1,53 @@
+﻿@model IEnumerable<BanCode.Models.Product>
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between mb-4">
+        <h2>📦 Kho Sản Phẩm</h2>
+        <a asp-action="Create" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Thêm sản phẩm mới
+        </a>
+    </div>
+
+    <table class="table table-hover border">
+        <thead class="table-light">
+            <tr>
+                <th>Ảnh</th>
+                <th>Tên sản phẩm</th>
+                <th>Danh mục</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <img src="@item.ThumbnailUrl" width="50" height="50" class="rounded object-fit-cover" />
+                    </td>
+                    <td class="fw-bold">@item.Title</td>
+                    <td><span class="badge bg-secondary">@item.Category?.Name</span></td>
+                    <td>
+                        @if (item.Status == "published")
+                        {
+                            <span class="badge bg-success">Đang bán</span>
+                        }
+                        else
+                        {
+
+                            <span class="badge bg-warning text-dark">Nháp</span>
+                        }
+                    </td>
+                    <td>
+                        <a href="#" class="btn btn-sm btn-outline-primary">Sửa</a>
+                        <a href="#" class="btn btn-sm btn-outline-danger">Xóa</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

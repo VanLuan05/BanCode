@@ -92,6 +92,14 @@
                                     Chào, @(User.FindFirst("FullName")?.Value ?? User.Identity.Name)
                                 </span>
                             </li>
+                            @if (User.IsInRole("admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-danger fw-bold" asp-controller="Admin" asp-action="Index">
+                                        <i class="fas fa-user-shield"></i> Trang Quản Trị
+                                    </a>
+                                </li>
+                            }
                             <li class="nav-item">
                                 <form asp-controller="Account" asp-action="Logout" method="post">
                                     <button type="submit" class="btn btn-link nav-link text-danger">Đăng xuất</button>

@@ -17,11 +17,17 @@ namespace BanCode.Helpers
 
         protected override async Task<ClaimsIdentity> GenerateClaimsAsync(User user)
         {
-            // 1. Lấy identity mặc định (có sẵn Id, UserName/Email...)
             var identity = await base.GenerateClaimsAsync(user);
 
-            // 2. "Nhét" thêm FullName vào trong thẻ căn cước (Claims)
+            // 1. Thêm FullName (như cũ)
             identity.AddClaim(new Claim("FullName", user.FullName ?? "Người dùng"));
+
+            // 2. QUAN TRỌNG: Lấy Role từ bảng users và gán vào Claim chuẩn của Identity
+            // Lưu ý: user.Role của bạn đang là "admin" hoặc "customer"
+            if (!string.IsNullOrEmpty(user.Role))
+            {
+                identity.AddClaim(new Claim(ClaimTypes.Role, user.Role));
+            }
 
             return identity;
         }

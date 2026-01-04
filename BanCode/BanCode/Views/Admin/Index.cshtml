@@ -1,53 +1,177 @@
-﻿@model IEnumerable<BanCode.Models.Product>
+﻿@model BanCode.Models.AdminDashboardViewModel
+
 @{
-    ViewData["Title"] = "Quản lý sản phẩm";
+    ViewData["Title"] = "Tổng quan";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container py-5">
-    <div class="d-flex justify-content-between mb-4">
-        <h2>📦 Kho Sản Phẩm</h2>
-        <a asp-action="Create" class="btn btn-success">
-            <i class="bi bi-plus-lg"></i> Thêm sản phẩm mới
-        </a>
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Tổng quan hệ thống</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item active">Dashboard</li>
+    </ol>
+
+    <div class="row">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Doanh Thu</h5>
+                    <h3 class="fw-bold">@Model.TotalRevenue.ToString("N0") đ</h3>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" asp-controller="AdminOrder" asp-action="Index">Xem chi tiết</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Đơn Hàng</h5>
+                    <h3 class="fw-bold">@Model.TotalOrders</h3>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" asp-controller="AdminOrder" asp-action="Index">Xem chi tiết</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Khách Hàng</h5>
+                    <h3 class="fw-bold">@Model.TotalUsers</h3>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" asp-controller="AdminUser" asp-action="Index">Xem chi tiết</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-danger text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Sản Phẩm</h5>
+                    <h3 class="fw-bold">@Model.TotalProducts</h3>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" asp-controller="AdminCategory" asp-action="Index">Xem chi tiết</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <table class="table table-hover border">
-        <thead class="table-light">
-            <tr>
-                <th>Ảnh</th>
-                <th>Tên sản phẩm</th>
-                <th>Danh mục</th>
-                <th>Trạng thái</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>
-                        <img src="@item.ThumbnailUrl" width="50" height="50" class="rounded object-fit-cover" />
-                    </td>
-                    <td class="fw-bold">@item.Title</td>
-                    <td><span class="badge bg-secondary">@item.Category?.Name</span></td>
-                    <td>
-                        @if (item.Status == "published")
-                        {
-                            <span class="badge bg-success">Đang bán</span>
-                        }
-                        else
-                        {
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-area me-1"></i>
+                    Biểu đồ doanh thu (7 ngày qua)
+                </div>
+                <div class="card-body">
+                    <canvas id="myAreaChart" width="100%" height="40"></canvas>
+                </div>
+            </div>
+        </div>
 
-                            <span class="badge bg-warning text-dark">Nháp</span>
-                        }
-                    </td>
-                    <td>
-                        <a href="#" class="btn btn-sm btn-outline-primary">Sửa</a>
-                        <a href="#" class="btn btn-sm btn-outline-danger">Xóa</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table me-1"></i>
+                    Đơn hàng mới nhất
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Mã Đơn</th>
+                                    <th>Khách hàng</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in Model.RecentOrders)
+                                {
+                                    <tr>
+                                        <td><small>@order.Id.ToString().Substring(0, 8)...</small></td>
+                                        <td>@order.User?.FullName</td>
+                                        <td>@order.TotalAmount.ToString("N0") đ</td>
+                                        <td>
+                                            @if (order.Status == "completed")
+                                            {
+                                                <span class="badge bg-success">Hoàn thành</span>
+                                            }
+                                            else if (order.Status == "pending")
+                                            {
+
+                                                <span class="badge bg-warning text-dark">Chờ thanh toán</span>
+                                            }
+                                            else if (order.Status == "processing")
+                                            {
+
+                                                <span class="badge bg-info">Đang xử lý</span>
+                                            }
+                                            else
+                                            {
+
+                                                <span class="badge bg-danger">Hủy</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+
+<script>
+    // Lấy dữ liệu từ C# chuyển sang Javascript
+    var ctx = document.getElementById("myAreaChart");
+    var myLineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(Json.Serialize(Model.ChartLabels)), // Dữ liệu ngày
+            datasets: [{
+                label: "Doanh thu",
+                lineTension: 0.3,
+                backgroundColor: "rgba(2,117,216,0.2)",
+                borderColor: "rgba(2,117,216,1)",
+                pointRadius: 5,
+                pointBackgroundColor: "rgba(2,117,216,1)",
+                pointBorderColor: "rgba(255,255,255,0.8)",
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: "rgba(2,117,216,1)",
+                pointHitRadius: 50,
+                pointBorderWidth: 2,
+                data: @Html.Raw(Json.Serialize(Model.ChartData)), // Dữ liệu tiền
+            }],
+        },
+        options: {
+            scales: {
+                xAxes: [{
+                    time: { unit: 'date' },
+                    gridLines: { display: false },
+                    ticks: { maxTicksLimit: 7 }
+                }],
+                yAxes: [{
+                    ticks: {
+                        min: 0,
+                        maxTicksLimit: 5,
+                        callback: function(value) { return value.toLocaleString('vi-VN') + ' đ'; }
+                    },
+                    gridLines: { color: "rgba(0, 0, 0, .125)" }
+                }],
+            },
+            legend: { display: false }
+        }
+    });
+</script>

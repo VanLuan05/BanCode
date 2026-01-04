@@ -73,9 +73,11 @@
         </div>
 
         <div class="nav flex-column">
-            <a href="#" class="nav-link text-white">
+            <a asp-controller="Admin" asp-action="Index"
+               class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Admin" ? "active" : "")">
                 <i class="bi bi-speedometer2"></i> Tổng quan
             </a>
+           
 
             <p class="text-uppercase text-muted small fw-bold px-4 mt-3 mb-1">Quản lý kho</p>
 
@@ -84,8 +86,8 @@
                 <i class="bi bi-tags"></i> Danh mục
             </a>
 
-            <a asp-controller="Admin" asp-action="Index"
-               class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Admin" ? "active" : "")">
+            <a asp-controller="AdminProduct" asp-action="Index"
+               class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminProduct" ? "active" : "")">
                 <i class="bi bi-box-seam"></i> Sản phẩm
             </a>
 
@@ -95,9 +97,11 @@
                class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminOrder" ? "active" : "")">
                 <i class="bi bi-cart-check"></i> Quản lý Đơn hàng
             </a>
-            <a href="#" class="nav-link">
-                <i class="bi bi-people"></i> Khách hàng
+            <a asp-controller="AdminUser" asp-action="Index"
+               class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminUser" ? "active" : "")">
+                <i class="bi bi-people"></i> Quản lý Khách hàng
             </a>
+         
 
             <p class="text-uppercase text-muted small fw-bold px-4 mt-3 mb-1">Hệ thống</p>
 
