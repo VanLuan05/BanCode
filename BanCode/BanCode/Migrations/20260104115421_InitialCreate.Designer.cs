@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BanCode.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260104112402_AddContactTable")]
-    partial class AddContactTable
+    [Migration("20260104115421_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

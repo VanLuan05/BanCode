@@ -155,7 +155,10 @@
             </a>
 
             <p class="text-uppercase text-white-50 small fw-bold px-4 mt-3 mb-1">Hệ thống</p>
-
+            <a asp-controller="AdminContact" asp-action="Index"
+               class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminContact" ? "active" : "")">
+                <i class="bi bi-envelope-paper"></i> Hộp thư Hỗ trợ
+            </a>
             <a href="/" class="nav-link text-warning">
                 <i class="bi bi-globe"></i> Xem trang chủ
             </a>

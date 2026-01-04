@@ -30,6 +30,7 @@ public partial class ApplicationDbContext : IdentityDbContext<
     public virtual DbSet<DownloadLog> DownloadLogs { get; set; }
     public virtual DbSet<Order> Orders { get; set; }
     public virtual DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<Contact> Contacts { get; set; }
     public virtual DbSet<Product> Products { get; set; }
     public virtual DbSet<ProductImage> ProductImages { get; set; }
     public virtual DbSet<ProductPackage> ProductPackages { get; set; }
