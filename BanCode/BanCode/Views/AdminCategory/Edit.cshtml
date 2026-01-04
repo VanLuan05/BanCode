@@ -1,0 +1,97 @@
+﻿@model BanCode.Models.Category
+
+@{
+    ViewData["Title"] = "Chỉnh sửa danh mục";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Chỉnh sửa danh mục</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-action="Index">Danh sách danh mục</a></li>
+        <li class="breadcrumb-item active">Chỉnh sửa</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-edit me-1"></i>
+            Thông tin danh mục
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <form asp-action="Edit">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <input type="hidden" asp-for="Id" /> <div class="mb-3">
+                            <label asp-for="Name" class="form-label">Tên danh mục</label>
+                            <input asp-for="Name" class="form-control" onkeyup="ChangeToSlug();" id="title" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Slug" class="form-label">Đường dẫn (Slug)</label>
+                            <input asp-for="Slug" class="form-control" id="slug" />
+                            <span asp-validation-for="Slug" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Mô tả</label>
+                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="mt-4 mb-0">
+                            <div class="d-grid gap-2 d-md-block">
+                                <button type="submit" class="btn btn-primary px-4">Lưu thay đổi</button>
+                                <a asp-action="Index" class="btn btn-secondary px-4">Hủy bỏ</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        function ChangeToSlug() {
+            var title, slug;
+            
+            // Lấy text từ ô Title
+            title = document.getElementById("title").value;
+            slug = title.toLowerCase();
+            
+            // 1. Đổi ký tự có dấu thành không dấu
+            slug = slug.replace(/á|à|ả|ạ|ã|ă|ắ|ằ|ẳ|ẵ|ặ|â|ấ|ầ|ẩ|ẫ|ậ/gi, 'a');
+            slug = slug.replace(/é|è|ẻ|ẽ|ẹ|ê|ế|ề|ể|ễ|ệ/gi, 'e');
+            slug = slug.replace(/i|í|ì|ỉ|ĩ|ị/gi, 'i');
+            slug = slug.replace(/ó|ò|ỏ|õ|ọ|ô|ố|ồ|ổ|ỗ|ộ|ơ|ớ|ờ|ở|ỡ|ợ/gi, 'o');
+            slug = slug.replace(/ú|ù|ủ|ũ|ụ|ư|ứ|ừ|ử|ữ|ự/gi, 'u');
+            slug = slug.replace(/ý|ỳ|ỷ|ỹ|ỵ/gi, 'y');
+            slug = slug.replace(/đ/gi, 'd');
+            
+            
+          
+            slug = slug.replace(/[^a-z0-9\s-]/g, '');
+            
+            // 3. Đổi khoảng trắng thành gạch ngang
+            slug = slug.replace(/ /gi, "-");
+            
+            // 4. Xử lý nhiều gạch ngang liên tiếp
+            slug = slug.replace(/\-\-\-\-\-/gi, '-');
+            slug = slug.replace(/\-\-\-\-/gi, '-');
+            slug = slug.replace(/\-\-\-/gi, '-');
+            slug = slug.replace(/\-\-/gi, '-');
+            
+            // 5. Xóa các gạch ngang thừa ở đầu và cuối chuỗi
+            // Regex: ^-+ (gạch ngang đầu dòng) hoặc -+$ (gạch ngang cuối dòng)
+            slug = slug.replace(/^-+|-+$/g, '');
+            
+            // Gán giá trị vào ô input Slug
+            document.getElementById("slug").value = slug;
+        }
+    </script>
+}

@@ -1,0 +1,121 @@
+﻿@model BanCode.Models.AdminProductViewModel
+
+@{
+    ViewData["Title"] = "Cập nhật sản phẩm";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Cập nhật sản phẩm</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-action="Index">Danh sách sản phẩm</a></li>
+        <li class="breadcrumb-item active">Cập nhật</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form asp-action="Edit" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="Id" /> <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">Tên sản phẩm</label>
+                            <input asp-for="Title" class="form-control" id="title" onkeyup="ChangeToSlug();" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Slug" class="form-label">Slug (URL)</label>
+                            <input asp-for="Slug" class="form-control" id="slug" />
+                            <span asp-validation-for="Slug" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CategoryId" class="form-label">Danh mục</label>
+                                <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories"></select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TechStack" class="form-label">Công nghệ (Cách nhau dấu phẩy)</label>
+                                <input asp-for="TechStack" class="form-control" placeholder="Ví dụ: C#, ReactJS, SQL" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Price" class="form-label">Giá gốc (VNĐ)</label>
+                                <input asp-for="Price" class="form-control" type="number" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SalePrice" class="form-label">Giá khuyến mãi (VNĐ)</label>
+                                <input asp-for="SalePrice" class="form-control" type="number" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Ảnh đại diện hiện tại</label>
+                            <div class="border p-2 text-center">
+                                @if (!string.IsNullOrEmpty(Model.CurrentThumbnailUrl))
+                                {
+                                    <img src="@Model.CurrentThumbnailUrl" class="img-fluid" style="max-height: 200px;" />
+                                }
+                                else
+                                {
+                                    <span>Chưa có ảnh</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ThumbnailImage" class="form-label">Thay đổi ảnh (Nếu cần)</label>
+                            <input asp-for="ThumbnailImage" class="form-control" type="file" accept="image/*" />
+                            <span asp-validation-for="ThumbnailImage" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="SourceCodeFile" class="form-label">Cập nhật File Code (Nếu cần)</label>
+                            <input asp-for="SourceCodeFile" class="form-control" type="file" />
+                            <small class="text-muted">Chỉ upload nếu muốn thay thế file cũ.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary px-4">Lưu thay đổi</button>
+                    <a asp-action="Index" class="btn btn-secondary px-4">Hủy bỏ</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+       
+        function ChangeToSlug() {
+            var title, slug;
+            title = document.getElementById("title").value;
+            slug = title.toLowerCase();
+            
+            slug = slug.replace(/á|à|ả|ạ|ã|ă|ắ|ằ|ẳ|ẵ|ặ|â|ấ|ầ|ẩ|ẫ|ậ/gi, 'a');
+            slug = slug.replace(/é|è|ẻ|ẽ|ẹ|ê|ế|ề|ể|ễ|ệ/gi, 'e');
+            slug = slug.replace(/i|í|ì|ỉ|ĩ|ị/gi, 'i');
+            slug = slug.replace(/ó|ò|ỏ|õ|ọ|ô|ố|ồ|ổ|ỗ|ộ|ơ|ớ|ờ|ở|ỡ|ợ/gi, 'o');
+            slug = slug.replace(/ú|ù|ủ|ũ|ụ|ư|ứ|ừ|ử|ữ|ự/gi, 'u');
+            slug = slug.replace(/ý|ỳ|ỷ|ỹ|ỵ/gi, 'y');
+            slug = slug.replace(/đ/gi, 'd');
+            
+            // Xóa ký tự đặc biệt
+            slug = slug.replace(/[^a-z0-9\s-]/g, '');
+            
+            slug = slug.replace(/ /gi, "-");
+            slug = slug.replace(/^-+|-+$/g, '');
+            
+            document.getElementById("slug").value = slug;
+        }
+    </script>
+}

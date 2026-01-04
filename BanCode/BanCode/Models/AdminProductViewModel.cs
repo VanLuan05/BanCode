@@ -4,6 +4,9 @@ namespace BanCode.Models
 {
     public class AdminProductViewModel
     {
+        public Guid Id { get; set; } // Thêm dòng này (để biết đang sửa ai)
+
+        public string? CurrentThumbnailUrl { get; set; } // Thêm dòng này (để hiện ảnh cũ)
         // Thông tin Sản phẩm
         [Required(ErrorMessage = "Vui lòng nhập tên sản phẩm")]
         public string? Title { get; set; }
