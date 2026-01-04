@@ -1,6 +1,9 @@
 ﻿using BanCode.Services;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using BanCode.Models;
+using BanCode.Helpers;
 var builder = WebApplication.CreateBuilder(args);
 
 // Đăng ký kết nối Database
@@ -19,6 +22,21 @@ builder.Services.Configure<FormOptions>(options =>
 });
 // ----------------------------------------------------
 
+builder.Services.AddIdentity<User, IdentityRole<Guid>>(options => {
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders()
+.AddClaimsPrincipalFactory<CustomUserClaimsPrincipalFactory>();
+// Cấu hình đường dẫn khi chưa đăng nhập
+builder.Services.ConfigureApplicationCookie(options => {
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+}); 
 // Nếu chạy trên Kestrel (mặc định khi debug Visual Studio code), cần thêm dòng này:
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
@@ -40,7 +58,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
 app.MapControllerRoute(
