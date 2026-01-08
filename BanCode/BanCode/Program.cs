@@ -14,6 +14,7 @@ builder.Services.AddDbContext<BanCode.Models.ApplicationDbContext>(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<BanCode.Services.VnPay.IVnPayService, BanCode.Services.VnPay.VnPayService>();
 builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();
 // --- 2. THÊM ĐOẠN CODE NÀY ĐỂ TĂNG GIỚI HẠN UPLOAD ---

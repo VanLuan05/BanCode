@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using BanCode.Services.VnPay; // Đảm bảo đã có namespace này
+
 namespace BanCode.Controllers
 {
     [Authorize] // Bắt buộc đăng nhập mới xem được
@@ -12,39 +14,41 @@ namespace BanCode.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
-        public OrderController(ApplicationDbContext context, IWebHostEnvironment env)
+        private readonly IVnPayService _vnPayService; // Khai báo service
+
+        // --- 1. SỬA LỖI CONSTRUCTOR: Thêm tham số vnPayService ---
+        public OrderController(ApplicationDbContext context, IWebHostEnvironment env, IVnPayService vnPayService)
         {
             _context = context;
             _env = env;
+            _vnPayService = vnPayService; // Gán giá trị
         }
 
         // 1. TRANG THANH TOÁN (GET)
         public IActionResult Checkout()
         {
-            // Lấy giỏ hàng từ Session
             var cart = HttpContext.Session.Get<List<CartItem>>("Cart") ?? new List<CartItem>();
 
             if (cart.Count == 0)
             {
-                return RedirectToAction("Index", "Cart"); // Giỏ rỗng thì đá về trang giỏ
+                return RedirectToAction("Index", "Cart");
             }
 
-            // Truyền giỏ hàng sang View để hiển thị danh sách
             ViewBag.Cart = cart;
             ViewBag.TotalAmount = cart.Sum(item => item.Price);
 
             return View();
         }
+
         // 2. XỬ LÝ THANH TOÁN (POST)
         [HttpPost]
-        public async Task<IActionResult> ProcessPayment(string fullName, string email)
+        // --- SỬA LỖI LOGIC: Thêm tham số paymentMethod ---
+        public async Task<IActionResult> ProcessPayment(string fullName, string email, string paymentMethod)
         {
-            // Lấy giỏ hàng
             var cart = HttpContext.Session.Get<List<CartItem>>("Cart") ?? new List<CartItem>();
-
             if (cart.Count == 0) return RedirectToAction("Index", "Cart");
 
-            // 1. Tạo hoặc lấy thông tin User (Khách hàng)
+            // 1. Tạo User nếu chưa có
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
             {
@@ -58,18 +62,18 @@ namespace BanCode.Controllers
                 _context.Users.Add(user);
             }
 
-            // 2. Tạo Đơn hàng (Order)
+            // 2. Tạo Order
             var order = new Order
             {
                 Id = Guid.NewGuid(),
                 UserId = user.Id,
                 TotalAmount = cart.Sum(i => i.Price),
-                Status = "pending", // Chờ thanh toán
+                Status = "pending", // Mặc định là chờ
                 CreatedAt = DateTime.Now
             };
             _context.Orders.Add(order);
 
-            // 3. Tạo Chi tiết đơn hàng (OrderItem) - Lưu từng món trong giỏ
+            // 3. Tạo OrderItem
             foreach (var item in cart)
             {
                 var orderItem = new OrderItem
@@ -82,13 +86,56 @@ namespace BanCode.Controllers
                 _context.OrderItems.Add(orderItem);
             }
 
+            // Lưu đơn hàng vào DB trước (Trạng thái Pending)
             await _context.SaveChangesAsync();
+
+            // Xóa giỏ hàng
             HttpContext.Session.Remove("Cart");
-            // D. Chuyển hướng sang trang Quét QR
+
+            // --- SỬA LỖI LOGIC: Chuyển hướng sang VNPay nếu được chọn ---
+            if (paymentMethod == "VnPay")
+            {
+                // Tạo URL thanh toán
+                var paymentUrl = _vnPayService.CreatePaymentUrl(HttpContext, order);
+                // Chuyển hướng người dùng sang VNPay
+                return Redirect(paymentUrl);
+            }
+            // -------------------------------------------------------------
+
+            // Nếu thanh toán thường (QR/COD) -> Chuyển sang trang Payment nội bộ
             return RedirectToAction("Payment", new { orderId = order.Id });
         }
 
-        // 3. TRANG THANH TOÁN (Hiện QR Code)
+        // 3. NHẬN KẾT QUẢ TỪ VNPAY (Callback)
+        public async Task<IActionResult> PaymentCallback()
+        {
+            var response = _vnPayService.PaymentExecute(Request.Query);
+
+            if (response == null || response.VnPayResponseCode != "00")
+            {
+                TempData["Error"] = "Thanh toán VNPay thất bại hoặc bị hủy.";
+                // Cần tạo View PaymentFail hoặc redirect về trang chủ kèm thông báo
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Thanh toán thành công -> Cập nhật đơn hàng
+            var orderId = Guid.Parse(response.OrderId);
+            var order = await _context.Orders.FindAsync(orderId);
+
+            if (order != null)
+            {
+                order.Status = "completed"; // Lưu ý: dùng chữ thường cho đồng bộ dữ liệu cũ
+                order.PaymentMethod = "VnPay";
+                order.TransactionId = response.TransactionId;
+                order.PaidAt = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("Success");
+        }
+
+        // 4. TRANG THANH TOÁN THỦ CÔNG (QR Tĩnh)
         public async Task<IActionResult> Payment(Guid orderId)
         {
             var order = await _context.Orders
@@ -100,42 +147,26 @@ namespace BanCode.Controllers
             return View(order);
         }
 
-        // 4. GIẢ LẬP: KHÁCH ĐÃ THANH TOÁN XONG
+        // 5. XÁC NHẬN ĐÃ THANH TOÁN THỦ CÔNG
         public async Task<IActionResult> ConfirmPaid(Guid orderId)
         {
             var order = await _context.Orders.FindAsync(orderId);
             if (order != null)
             {
-                // Thay đổi: Không set completed ngay, mà giữ là pending (hoặc processing)
-                // order.Status = "completed"; <--- XÓA DÒNG NÀY
-
-                order.Status = "processing"; // Trạng thái mới: Đang xử lý
+                order.Status = "processing";
                 await _context.SaveChangesAsync();
             }
-            // Chuyển hướng sang trang thông báo "Đang chờ duyệt" thay vì "Thành công"
             return RedirectToAction("PendingApproval");
         }
 
-        public IActionResult PendingApproval()
-        {
-            return View();
-        }
+        // ... CÁC ACTION KHÁC (PendingApproval, Success, TrackOrder...) GIỮ NGUYÊN ...
 
-        public IActionResult Success()
-        {
-            return View();
-        }
+        public IActionResult PendingApproval() => View();
+        public IActionResult Success() => View();
 
-       
-
-        // 5. TRANG TRA CỨU ĐƠN HÀNG (GET)
         [HttpGet]
-        public IActionResult TrackOrder()
-        {
-            return View();
-        }
+        public IActionResult TrackOrder() => View();
 
-        // 6. XỬ LÝ TRA CỨU (POST) - ĐÃ SỬA
         [HttpPost]
         public async Task<IActionResult> TrackOrder(string email, string orderIdStr)
         {
@@ -144,104 +175,69 @@ namespace BanCode.Controllers
                 ViewBag.Error = "Vui lòng nhập đầy đủ thông tin.";
                 return View();
             }
-
-            // BƯỚC 1: Tìm tất cả đơn hàng của Email này trước (Để tối ưu hiệu suất)
-            // Lưu ý: Include đầy đủ thông tin để hiển thị kết quả
             var userOrders = await _context.Orders
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
-                .Include(o => o.OrderItems).ThenInclude(oi => oi.Package) // Nhớ là .Package nhé
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Package)
                 .Include(o => o.User)
                 .Where(o => o.User.Email == email)
                 .ToListAsync();
 
-            // BƯỚC 2: Lọc trong danh sách đó xem có đơn nào KHỚP MÃ không
-            // Dùng .ToString().Contains() để chấp nhận cả mã ngắn (8 ký tự) lẫn mã dài
-            // StringComparison.OrdinalIgnoreCase để không phân biệt hoa thường
             var order = userOrders.FirstOrDefault(o =>
                 o.Id.ToString().Contains(orderIdStr, StringComparison.OrdinalIgnoreCase));
 
             if (order == null)
             {
-                ViewBag.Error = "Không tìm thấy đơn hàng hoặc Email không khớp.";
+                ViewBag.Error = "Không tìm thấy đơn hàng.";
                 return View();
             }
-
             return View(order);
         }
 
-        // 7. HÀM TẢI FILE BẢO MẬT (Chỉ cho tải khi Status = completed)
         public async Task<IActionResult> DownloadFile(Guid orderId, Guid packageId)
         {
-            // 1. Kiểm tra đơn hàng
             var order = await _context.Orders
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Package) // <-- SỬA: Đổi ProductPackage thành Package
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Package)
                 .FirstOrDefaultAsync(o => o.Id == orderId);
 
             if (order == null || order.Status != "completed")
-            {
-                return BadRequest("Đơn hàng chưa được thanh toán hoặc đang chờ duyệt.");
-            }
+                return BadRequest("Đơn hàng chưa thanh toán.");
 
-            // 2. Tìm gói sản phẩm
             var orderItem = order.OrderItems.FirstOrDefault(oi => oi.PackageId == packageId);
+            if (orderItem == null || orderItem.Package == null) return NotFound();
 
-            // <-- SỬA: Đổi orderItem.ProductPackage thành orderItem.Package
-            if (orderItem == null || orderItem.Package == null)
-            {
-                return NotFound("Không tìm thấy file trong đơn hàng này.");
-            }
-
-            // 3. Lấy đường dẫn file
             string webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-
-            // <-- SỬA (Dòng gây lỗi 186): Đổi orderItem.ProductPackage thành orderItem.Package
             string relativePath = orderItem.Package.FileUrl?.TrimStart('/') ?? "";
-
             string filePath = Path.Combine(webRootPath, relativePath);
 
-            if (!System.IO.File.Exists(filePath))
-            {
-                return NotFound("File gốc đã bị xóa hoặc di chuyển.");
-            }
+            if (!System.IO.File.Exists(filePath)) return NotFound("File không tồn tại.");
 
             byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            string fileName = Path.GetFileName(filePath);
-            return File(fileBytes, "application/octet-stream", fileName);
+            return File(fileBytes, "application/octet-stream", Path.GetFileName(filePath));
         }
 
-        // 8. DANH SÁCH ĐƠN MUA
         public async Task<IActionResult> History()
         {
-            // Lấy ID người dùng hiện tại
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return RedirectToAction("Login", "Account");
 
-            // Lấy danh sách đơn hàng của user đó (kèm theo chi tiết sản phẩm để hiển thị)
             var orders = await _context.Orders
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.Product) // Lấy tên sản phẩm
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
                 .Where(o => o.UserId == Guid.Parse(userId))
-                .OrderByDescending(o => o.CreatedAt) // Mới nhất lên đầu
+                .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
 
             return View(orders);
         }
 
-        // 9. CHI TIẾT ĐƠN HÀNG
         public async Task<IActionResult> Details(Guid id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
             var order = await _context.Orders
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.Product)
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.Package) // Lấy gói để lấy FileUrl
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Package)
                 .FirstOrDefaultAsync(o => o.Id == id && o.UserId == Guid.Parse(userId));
 
             if (order == null) return NotFound();
-
             return View(order);
         }
     }
