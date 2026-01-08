@@ -1,4 +1,5 @@
 ﻿@model BanCode.Models.Contact
+
 @{
     ViewData["Title"] = "Chi tiết tin nhắn";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -6,7 +7,17 @@
 
 <div class="container-fluid">
     <a asp-action="Index" class="btn btn-outline-secondary mb-3"><i class="bi bi-arrow-left"></i> Quay lại</a>
-    <div class="card shadow-sm">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="card shadow-sm mb-4">
         <div class="card-header bg-white py-3">
             <h5 class="m-0 fw-bold text-primary">@Model.Subject</h5>
         </div>
@@ -14,20 +25,38 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <strong>Người gửi:</strong> @Model.FullName <br>
-                    <strong>Email:</strong> <a href="mailto:@Model.Email">@Model.Email</a>
+                    <strong>Email:</strong> <a href="mailto:@Model.Email" class="text-decoration-none">@Model.Email</a>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <small class="text-muted">Gửi lúc: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
                 </div>
             </div>
-            <hr>
-            <div class="p-4 bg-light rounded border mb-4">
+            <div class="p-3 bg-light rounded border">
                 <p class="mb-0" style="white-space: pre-line;">@Model.Message</p>
             </div>
-            <a href="mailto:@Model.Email?subject=Re: @Model.Subject&body=Chào @Model.FullName,%0D%0A%0D%0ACảm ơn bạn đã liên hệ...%0D%0A"
-               class="btn btn-primary px-4">
-                <i class="bi bi-reply-fill"></i> Trả lời qua Email
-            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-primary">
+        <div class="card-header bg-primary text-white">
+            <h6 class="m-0 fw-bold"><i class="bi bi-reply-fill"></i> Soạn phản hồi</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="Reply" method="post">
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <div class="mb-3">
+                    <textarea name="replyMessage" class="form-control" rows="5"
+                              placeholder="Nhập nội dung trả lời tại đây..." required></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted"><i class="bi bi-info-circle"></i> Email sẽ được gửi qua SMTP Gmail.</small>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold">
+                        <i class="bi bi-send-fill me-2"></i> Gửi Ngay
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

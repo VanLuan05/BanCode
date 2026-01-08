@@ -311,3 +311,5 @@ USE WebProductStore;
 UPDATE users SET role = 'admin' WHERE email = 'luannguyenqn.00@gmail.com';
 select * from users
 select * from orders
+
+

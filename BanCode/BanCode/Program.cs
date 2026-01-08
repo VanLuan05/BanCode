@@ -6,6 +6,8 @@ using BanCode.Models;
 using BanCode.Helpers;
 var builder = WebApplication.CreateBuilder(args);
 
+// Đăng ký dịch vụ gửi Email
+builder.Services.AddTransient<BanCode.Services.IEmailSender, BanCode.Services.EmailSender>();
 // Đăng ký kết nối Database
 builder.Services.AddDbContext<BanCode.Models.ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
