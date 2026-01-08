@@ -45,8 +45,7 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 {
     serverOptions.Limits.MaxRequestBodySize = 524288000; // 500 MB
 });
-// Đăng ký dịch vụ EmailSender
-builder.Services.AddTransient<IEmailSender, EmailSender>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
