@@ -193,26 +193,68 @@ namespace BanCode.Controllers
             return View(order);
         }
 
+        // 7. HÀM TẢI FILE BẢO MẬT (Đã nâng cấp)
         public async Task<IActionResult> DownloadFile(Guid orderId, Guid packageId)
         {
+            // 1. Lấy ID người dùng đang đăng nhập
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            // 2. Tìm đơn hàng khớp OrderId và UserId (Chống tải trộm đơn người khác)
             var order = await _context.Orders
-                .Include(o => o.OrderItems).ThenInclude(oi => oi.Package)
-                .FirstOrDefaultAsync(o => o.Id == orderId);
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Package)
+                .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == Guid.Parse(userId));
 
-            if (order == null || order.Status != "completed")
-                return BadRequest("Đơn hàng chưa thanh toán.");
+            // 3. Kiểm tra trạng thái thanh toán
+            if (order == null)
+            {
+                return NotFound("Không tìm thấy đơn hàng của bạn.");
+            }
 
+            // Nếu đơn chưa hoàn thành -> Không cho tải
+            if (order.Status != "completed")
+            {
+                return BadRequest("Đơn hàng chưa thanh toán thành công. Vui lòng thanh toán để tải file.");
+            }
+
+            // 4. Tìm gói sản phẩm trong đơn hàng
             var orderItem = order.OrderItems.FirstOrDefault(oi => oi.PackageId == packageId);
-            if (orderItem == null || orderItem.Package == null) return NotFound();
 
-            string webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            string relativePath = orderItem.Package.FileUrl?.TrimStart('/') ?? "";
-            string filePath = Path.Combine(webRootPath, relativePath);
+            if (orderItem == null || orderItem.Package == null)
+            {
+                return NotFound("Không tìm thấy file trong đơn hàng này.");
+            }
 
-            if (!System.IO.File.Exists(filePath)) return NotFound("File không tồn tại.");
+            // 5. Xử lý đường dẫn file (Logic Bảo Mật)
+            // Lấy tên file gốc từ DB (Ví dụ: /uploads/code.zip -> code.zip)
+            string fileName = Path.GetFileName(orderItem.Package.FileUrl);
 
-            byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(fileBytes, "application/octet-stream", Path.GetFileName(filePath));
+            // Đường dẫn đến thư mục BẢO MẬT (PrivateFiles) nằm ngoài wwwroot
+            string privateFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "PrivateFiles");
+            string filePath = Path.Combine(privateFolderPath, fileName);
+
+            // 6. Kiểm tra file có tồn tại trong thư mục bảo mật không
+            if (!System.IO.File.Exists(filePath))
+            {
+                // Fallback: Nếu bạn chưa kịp chuyển file sang PrivateFiles, thử tìm ở wwwroot cũ
+                string webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                string publicFilePath = Path.Combine(webRootPath, orderItem.Package.FileUrl?.TrimStart('/') ?? "");
+
+                if (System.IO.File.Exists(publicFilePath))
+                {
+                    filePath = publicFilePath; // Tạm thời cho tải từ nguồn cũ
+                }
+                else
+                {
+                    return NotFound("File gốc không tồn tại trên hệ thống.");
+                }
+            }
+
+            // 7. Đọc file và trả về stream (Người dùng sẽ thấy trình duyệt bắt đầu tải)
+            // Dùng "application/octet-stream" để trình duyệt hiểu là file tải về
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            return File(fileBytes, "application/octet-stream", fileName);
         }
 
         public async Task<IActionResult> History()

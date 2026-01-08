@@ -35,24 +35,20 @@ namespace BanCode.Controllers
             return View();
         }
 
-        // 3. XỬ LÝ THÊM MỚI (POST)
         [HttpPost]
         public async Task<IActionResult> Create(AdminProductViewModel model)
         {
             if (ModelState.IsValid)
             {
-                // A. XỬ LÝ UPLOAD ẢNH
+                // A. XỬ LÝ UPLOAD ẢNH (GIỮ NGUYÊN - Vẫn lưu ở wwwroot để hiển thị)
                 string thumbnailPath = "";
                 if (model.ThumbnailImage != null)
                 {
-                    // Tạo tên file độc nhất để tránh trùng
                     string fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ThumbnailImage.FileName);
                     string uploadPath = Path.Combine(_env.WebRootPath, "uploads/images");
 
-                    // Tạo thư mục nếu chưa có
                     if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
 
-                    // Lưu file
                     using (var stream = new FileStream(Path.Combine(uploadPath, fileName), FileMode.Create))
                     {
                         await model.ThumbnailImage.CopyToAsync(stream);
@@ -60,23 +56,31 @@ namespace BanCode.Controllers
                     thumbnailPath = "/uploads/images/" + fileName;
                 }
 
-                // B. XỬ LÝ UPLOAD SOURCE CODE
+                // B. XỬ LÝ UPLOAD SOURCE CODE (SỬA LẠI: LƯU VÀO THƯ MỤC BẢO MẬT)
                 string sourceCodePath = "";
                 if (model.SourceCodeFile != null)
                 {
                     string fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.SourceCodeFile.FileName);
-                    string uploadPath = Path.Combine(_env.WebRootPath, "uploads/code");
-                    if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
 
-                    using (var stream = new FileStream(Path.Combine(uploadPath, fileName), FileMode.Create))
+                    // --- THAY ĐỔI QUAN TRỌNG TẠI ĐÂY ---
+                    // 1. Đường dẫn vật lý: Lưu ra ngoài wwwroot (vào thư mục PrivateFiles)
+                    string privateFolder = Path.Combine(Directory.GetCurrentDirectory(), "PrivateFiles");
+
+                    // Tạo thư mục PrivateFiles nếu chưa có
+                    if (!Directory.Exists(privateFolder)) Directory.CreateDirectory(privateFolder);
+
+                    // 2. Lưu file vào đó
+                    using (var stream = new FileStream(Path.Combine(privateFolder, fileName), FileMode.Create))
                     {
                         await model.SourceCodeFile.CopyToAsync(stream);
                     }
-                    sourceCodePath = "/uploads/code/" + fileName;
+
+                    // 3. Đường dẫn lưu DB: Lưu tên file (hoặc đường dẫn ảo)
+                    // Lưu ý: Hàm DownloadFile ở OrderController sẽ dùng Path.GetFileName để lấy tên file này
+                    sourceCodePath = "PrivateFiles/" + fileName;
                 }
 
-                // C. LƯU VÀO DATABASE
-                // 1. Tạo Product
+                // C. LƯU VÀO DATABASE (GIỮ NGUYÊN)
                 var product = new Product
                 {
                     Id = Guid.NewGuid(),
@@ -84,14 +88,12 @@ namespace BanCode.Controllers
                     Slug = model.Slug,
                     CategoryId = model.CategoryId,
                     ThumbnailUrl = thumbnailPath,
-                    // Chuyển chuỗi "C#, SQL" thành JSON ["C#", "SQL"]
                     TechStack = string.IsNullOrEmpty(model.TechStack) ? "[]" : System.Text.Json.JsonSerializer.Serialize(model.TechStack.Split(',')),
                     Status = "published",
                     CreatedAt = DateTime.Now
                 };
                 _context.Products.Add(product);
 
-                // 2. Tạo Gói Basic
                 var package = new ProductPackage
                 {
                     Id = Guid.NewGuid(),
@@ -99,7 +101,7 @@ namespace BanCode.Controllers
                     PackageType = "basic",
                     Price = model.Price,
                     SalePrice = model.SalePrice,
-                    FileUrl = sourceCodePath,
+                    FileUrl = sourceCodePath, // Lưu đường dẫn bảo mật
                     IsActive = true
                 };
                 _context.ProductPackages.Add(package);
@@ -108,7 +110,6 @@ namespace BanCode.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Nếu lỗi form, load lại danh mục
             ViewBag.Categories = new SelectList(_context.Categories, "Id", "Name");
             return View(model);
         }
@@ -157,7 +158,7 @@ namespace BanCode.Controllers
             return View(model);
         }
 
-        // 5. XỬ LÝ CẬP NHẬT (POST)
+        // 5. XỬ LÝ CẬP NHẬT (POST) - ĐÃ SỬA BẢO MẬT
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, AdminProductViewModel model)
@@ -184,10 +185,9 @@ namespace BanCode.Controllers
                         productToUpdate.TechStack = System.Text.Json.JsonSerializer.Serialize(tags);
                     }
 
-                    // 2. Xử lý Ảnh mới (Nếu có upload)
+                    // 2. Xử lý Ảnh mới (GIỮ NGUYÊN - Vẫn lưu public)
                     if (model.ThumbnailImage != null)
                     {
-                        // Upload ảnh mới
                         string fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ThumbnailImage.FileName);
                         string uploadPath = Path.Combine(_env.WebRootPath, "uploads/images");
                         if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
@@ -197,14 +197,10 @@ namespace BanCode.Controllers
                             await model.ThumbnailImage.CopyToAsync(stream);
                         }
 
-                        // Xóa ảnh cũ (nếu muốn tiết kiệm dung lượng - Optional)
-                        // if (!string.IsNullOrEmpty(productToUpdate.ThumbnailUrl)) ...
-
-                        // Cập nhật đường dẫn mới
                         productToUpdate.ThumbnailUrl = "/uploads/images/" + fileName;
                     }
 
-                    // 3. Cập nhật Giá (trong bảng ProductPackages)
+                    // 3. Cập nhật Giá
                     var packageToUpdate = await _context.ProductPackages
                         .FirstOrDefaultAsync(p => p.ProductId == id && p.PackageType == "basic");
 
@@ -213,18 +209,24 @@ namespace BanCode.Controllers
                         packageToUpdate.Price = model.Price;
                         packageToUpdate.SalePrice = model.SalePrice;
 
-                        // 4. Xử lý File code mới (Nếu có upload)
+                        // 4. Xử lý File code mới (SỬA LẠI: LƯU VÀO PRIVATEFILES)
                         if (model.SourceCodeFile != null)
                         {
                             string fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.SourceCodeFile.FileName);
-                            string uploadPath = Path.Combine(_env.WebRootPath, "uploads/code");
-                            if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
 
-                            using (var stream = new FileStream(Path.Combine(uploadPath, fileName), FileMode.Create))
+                            // --- THAY ĐỔI: Lưu vào thư mục bảo mật ---
+                            string privateFolder = Path.Combine(Directory.GetCurrentDirectory(), "PrivateFiles");
+                            if (!Directory.Exists(privateFolder)) Directory.CreateDirectory(privateFolder);
+
+                            // Lưu file vật lý
+                            using (var stream = new FileStream(Path.Combine(privateFolder, fileName), FileMode.Create))
                             {
                                 await model.SourceCodeFile.CopyToAsync(stream);
                             }
-                            packageToUpdate.FileUrl = "/uploads/code/" + fileName;
+
+                            // Cập nhật đường dẫn trong DB
+                            packageToUpdate.FileUrl = "PrivateFiles/" + fileName;
+                            // ------------------------------------------
                         }
                     }
 
@@ -260,7 +262,7 @@ namespace BanCode.Controllers
             return View(product);
         }
 
-        // 7. XỬ LÝ XÓA (POST)
+        // 7. XỬ LÝ XÓA (POST) - ĐÃ CẬP NHẬT LOGIC XÓA FILE BẢO MẬT
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
@@ -273,43 +275,64 @@ namespace BanCode.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // 2. Lấy thông tin sản phẩm và các gói liên quan (để xóa file vật lý)
+            // 2. Lấy thông tin sản phẩm và các gói liên quan
             var product = await _context.Products
-                .Include(p => p.ProductPackages) // Để lấy đường dẫn file code
-                .Include(p => p.ProductImages)   // Để lấy ảnh phụ (nếu có)
-                .Include(p => p.Reviews)         // Để xóa đánh giá
+                .Include(p => p.ProductPackages) // Quan trọng: lấy gói để biết đường dẫn file
+                .Include(p => p.Reviews)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product != null)
             {
-                // 3. Xóa File ảnh Thumbnail
+                // 3. Xóa File ảnh Thumbnail (Vẫn xóa ở wwwroot như cũ)
                 if (!string.IsNullOrEmpty(product.ThumbnailUrl))
                 {
-                    string oldPath = Path.Combine(_env.WebRootPath, product.ThumbnailUrl.TrimStart('/'));
-                    if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+                    // Xử lý đường dẫn tương đối (bỏ dấu / ở đầu nếu có)
+                    string webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                    string imgPath = Path.Combine(webRootPath, product.ThumbnailUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(imgPath)) System.IO.File.Delete(imgPath);
                 }
 
-                // 4. Xóa File Source Code của từng gói
+                // 4. Xóa File Source Code (SỬA LẠI: XÓA TRONG PRIVATEFILES)
                 foreach (var package in product.ProductPackages)
                 {
                     if (!string.IsNullOrEmpty(package.FileUrl))
                     {
-                        string filePath = Path.Combine(_env.WebRootPath, package.FileUrl.TrimStart('/'));
-                        if (System.IO.File.Exists(filePath)) System.IO.File.Delete(filePath);
+                        // Logic cũ: Xóa ở wwwroot (Sai với hệ thống mới)
+                        // string filePath = Path.Combine(_env.WebRootPath, package.FileUrl.TrimStart('/'));
+
+                        // --- Logic Mới: Xóa ở PrivateFiles hoặc wwwroot (để hỗ trợ cả file cũ lẫn mới) ---
+
+                        string filePath;
+
+                        // Kiểm tra xem đường dẫn có bắt đầu bằng "PrivateFiles" hay không
+                        if (package.FileUrl.StartsWith("PrivateFiles"))
+                        {
+                            // Đây là file bảo mật mới
+                            filePath = Path.Combine(Directory.GetCurrentDirectory(), package.FileUrl);
+                        }
+                        else
+                        {
+                            // Đây là file cũ (lúc chưa nâng cấp bảo mật) nằm trong wwwroot
+                            string webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                            filePath = Path.Combine(webRootPath, package.FileUrl.TrimStart('/'));
+                        }
+
+                        // Thực hiện xóa vật lý
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            System.IO.File.Delete(filePath);
+                        }
                     }
                 }
 
                 // 5. Xóa dữ liệu trong Database
-                // Do đã cấu hình Cascade hoặc EF Core tự hiểu quan hệ, ta xóa Product thì Packages/Reviews sẽ đi theo
-                // Tuy nhiên, nếu Database chưa set Cascade Delete, ta nên xóa tay cho chắc:
                 _context.ProductPackages.RemoveRange(product.ProductPackages);
                 _context.Reviews.RemoveRange(product.Reviews);
-                // _context.ProductImages.RemoveRange(product.ProductImages); // Nếu có bảng này
-
                 _context.Products.Remove(product);
+
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "Đã xóa sản phẩm và các file liên quan thành công.";
+                TempData["Success"] = "Đã xóa sản phẩm và dọn dẹp file rác thành công.";
             }
 
             return RedirectToAction(nameof(Index));

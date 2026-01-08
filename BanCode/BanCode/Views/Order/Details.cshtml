@@ -20,26 +20,26 @@
                 <div class="card-body">
                     @foreach (var item in Model.OrderItems)
                     {
-                        <div class="d-flex align-items-center mb-3 pb-3 border-bottom last-no-border">
-                            <img src="@item.Product.ThumbnailUrl" class="rounded me-3" style="width: 80px; height: 60px; object-fit: cover;">
-
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1 fw-bold">@item.Product.Title</h6>
-                                <p class="mb-0 text-muted small">Gói: <span class="text-uppercase">@item.Package.PackageType</span></p>
-                            </div>
-
-                            <div class="text-end">
-                                <p class="mb-1 fw-bold">@item.PriceAtPurchase.ToString("N0") đ</p>
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">@item.Package.PackageType</h5>
+                                <p class="card-text text-muted">Gói: @item.Package.PackageType</p>
 
                                 @if (Model.Status == "completed")
                                 {
-                                    <a href="@item.Package.FileUrl" class="btn btn-sm btn-success" download>
-                                        <i class="bi bi-cloud-arrow-down-fill"></i> Tải Source Code
+                                    <a asp-action="DownloadFile"
+                                       asp-controller="Order"
+                                       asp-route-orderId="@Model.Id"
+                                       asp-route-packageId="@item.PackageId"
+                                       class="btn btn-success">
+                                        <i class="bi bi-cloud-download-fill"></i> Tải xuống ngay
                                     </a>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-light text-muted border">Chưa thể tải</span>
+                                    <button class="btn btn-secondary" disabled>
+                                        <i class="bi bi-lock-fill"></i> Thanh toán để mở khóa
+                                    </button>
                                 }
                             </div>
                         </div>
