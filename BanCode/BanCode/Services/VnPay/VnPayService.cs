@@ -17,24 +17,34 @@ namespace BanCode.Services.VnPay
             var vnpay = new VnPayLibrary();
             var urlCallBack = _config["VnPay:ReturnUrl"];
 
-            vnpay.AddRequestData("vnp_Version", _config["VnPay:Version"]);
-            vnpay.AddRequestData("vnp_Command", _config["VnPay:Command"]);
-            vnpay.AddRequestData("vnp_TmnCode", _config["VnPay:TmnCode"]);
+            // 1. Điền cứng mã Website (TmnCode)
+            string tmnCode = "0WVTT2G5";
+
+            // 2. Điền cứng Mã bí mật (HashSecret)
+            string hashSecret = "OCWSRMC92OMBDWPYZH47L87LIJRNGD9G";
+
+            // 3. Điền cứng URL Sandbox
+            string baseUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+
+            // --- Bắt đầu gán dữ liệu ---
+            vnpay.AddRequestData("vnp_Version", "2.1.0");
+            vnpay.AddRequestData("vnp_Command", "pay");
+            vnpay.AddRequestData("vnp_TmnCode", tmnCode); // Dùng biến vừa tạo
             vnpay.AddRequestData("vnp_Amount", ((long)order.TotalAmount * 100).ToString());
-
             vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
-            vnpay.AddRequestData("vnp_CurrCode", _config["VnPay:CurrCode"]);
-
-            // Gọi hàm Utils từ bên VnPayLibrary
+            vnpay.AddRequestData("vnp_CurrCode", "VND");
             vnpay.AddRequestData("vnp_IpAddr", Utils.GetIpAddress(context));
-
-            vnpay.AddRequestData("vnp_Locale", _config["VnPay:Locale"]);
+            vnpay.AddRequestData("vnp_Locale", "vn");
             vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan don hang:" + order.Id);
             vnpay.AddRequestData("vnp_OrderType", "other");
-            vnpay.AddRequestData("vnp_ReturnUrl", urlCallBack);
+
+            // Lưu ý: ReturnUrl vẫn phải chính xác port 7063
+            vnpay.AddRequestData("vnp_ReturnUrl", "https://localhost:7063/Order/PaymentCallback");
+
             vnpay.AddRequestData("vnp_TxnRef", order.Id.ToString());
 
-            return vnpay.CreateRequestUrl(_config["VnPay:BaseUrl"], _config["VnPay:HashSecret"]);
+            // Tạo URL
+            return vnpay.CreateRequestUrl(baseUrl, hashSecret);
         }
 
         public PaymentResponseModel PaymentExecute(IQueryCollection collections)
